@@ -4,6 +4,7 @@
 __author__ = 'WngShhng'
 
 import os
+import shutil
 
 def write_xmls(dsits, create_dir):
     # 将从 Excel 中读取到的内容写入到 xml 文件中
@@ -17,7 +18,7 @@ def write_xml(file_appendix, dist, create_dir):
     if create_dir:
         dir_name = 'values-' + file_appendix
         if os.path.exists(dir_name):
-            os.rmdir(dir_name)
+            shutil.rmtree(dir_name)
         os.mkdir(dir_name)
         file_path = dir_name + '/' + 'strings.xml'
     else:
