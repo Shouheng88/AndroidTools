@@ -1,5 +1,7 @@
-#!/usr/bin/python
-# -*- coding: UTF-8 -*-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+__author__ = 'WngShhng'
 
 from xml.dom.minidom import parse
 import xml.dom.minidom

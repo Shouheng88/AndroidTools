@@ -1,42 +1,39 @@
-#!/usr/bin/python
-# -*- coding: UTF-8 -*-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
-from xml.dom.minidom import parse
-import xml.dom.minidom
+__author__ = 'WngShhng'
 
-import xlwt
+import xml_reader as xr
+import excel_writer as ew
+import excel_reader as er
 
 import xlrd
 
-def translate():
-	print("Beginning tranlate......")
+# 根据指定的文件资源，创建一个用于翻译的 Excel 表格
+def createTranslateResources():
 
-	# 使用minidom解析器打开 XML 文档
-	DOMTree = xml.dom.minidom.parse("strings.xml")
-	collection = DOMTree.documentElement
+	print("Beginning tranlate ......")
+
+	# 从文件中读取字符串资源，存储到一个字典当中
+	dist = xr.strings_reader('strings.xml')
+
+	# 测试 xml 解析结果
+	# for k,v in dist.items():
+	# 	print(k + ':' + v)
+
+	# 使用读取到的结果得到用于翻译的excel
+	ew.write_excel(dist, ['fr', 'zh', 'jp', 'Zh-en'])
+
+
+
+# 根据指定的翻译之后的 Excel 资源自动生成各种语言的字符串文件
+def createTranslatedResources():
 	
-	strings = collection.getElementsByTagName("string")
-
-	for string in strings:
-		# print(string.childNodes[0].data)
-		pass
-
-def createExcel():
-	print('Beginning create excel......')
-
-	book = xlwt.Workbook(encoding='utf-8', style_compression=0)
-
-	sheet = book.add_sheet('test', cell_overwrite_ok=True)
-
-	sheet.write(0, 0, 'EnglishName')  # 其中的'0-行, 0-列'指定表中的单元，'EnglishName'是向该单元写入的内容
-	sheet.write(1, 0, 'Marcovaldo')
-
-	txt1 = '中文名字'
-	sheet.write(0, 1, txt1)  # 此处需要将中文字符串解码成unicode码，否则会报错
-	txt2 = '马可瓦多'
-	sheet.write(1, 1, txt2)
-
-	book.save(r'./test1.xls') 
+	dsits = er.read_excel(r'./Translate.xls')
+	for res_name, dist in dsits.items():
+		print(res_name)
+		for k,v in dist.items():
+			print(k + ':' + v)
 
 def readExcel():
 	xlsfile = r"./test1.xls" 			# 打开指定路径中的xls文件
@@ -79,7 +76,7 @@ def readExcel():
 	print(cell_value2)
 	print("==========")
 
-readExcel()
+createTranslatedResources()
 
 
 
