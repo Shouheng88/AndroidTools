@@ -3,5 +3,7 @@
 *.so
 *.egg
 *.egg-info
+*.xls
+*.xml
 dist
 build
