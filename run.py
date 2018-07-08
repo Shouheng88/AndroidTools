@@ -4,6 +4,7 @@
 import translator
 import logging
 import os
+import json
 
 COMMOND_GEN_EXCEL = 'gen_excel'
 COMMOND_GEN_XML = 'gen_xml'
@@ -11,6 +12,8 @@ COMMOND_TRANSLATE = 'translate'
 COMMOND_STATUS = 'status'
 COMMOND_HELP ='help'
 COMMOND_EXIT = 'exit'
+
+API_CONFIG_FILE_PAHT = 'config.json'
 
 def run_commond():
     '''用于在命令行窗口中执行的代码块'''
@@ -146,7 +149,23 @@ def on_auto(msg):
     logging.debug('========== ' + COMMOND_TRANSLATE)
     if not check_excel_for_generate():
         return
+    if not get_api_config():
+        return
     translator.auto_translate()
+
+def get_api_config():
+    '''从文件中读取第三方翻译api的配置信息'''
+    logging.debug('========= get api config')
+    if not os.path.exists(API_CONFIG_FILE_PAHT):
+        print('文件 ' + API_CONFIG_FILE_PAHT + ' 不存在\n')
+        return False
+    with open(API_CONFIG_FILE_PAHT, 'r') as f:
+        ret = json.load(f)
+        translator.config_baidu_api(ret['app_id'], ret['app_secret'], ret['mappings'])
+    logging.debug(translator.config.APP_ID)
+    logging.debug(translator.config.APP_SECRET)
+    logging.debug(translator.config.MAPPING)
+    return True
 
 # 运行程序
 run_commond()
