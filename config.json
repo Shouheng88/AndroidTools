@@ -1,0 +1,11 @@
+{
+	"app_id":"your_app_id",
+	"app_secret":"your_secret",
+	"mappings": {
+		"zh":"zh",
+		"jp":"jp",
+		"zh-rCN":"cht",
+		"zh-rTW":"cht",
+		"en-rUS":"en"
+	}
+}

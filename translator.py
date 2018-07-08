@@ -8,6 +8,7 @@ import xmls.xml_writer as xw
 import excels.excel_writer as ew
 import excels.excel_reader as er
 import excels.auto_translator as at
+import baidu_api.baidu_translate_config as config
 
 EXCEL_FILE_NAME = r'Translate.xls'
 STRINGS_XML_FILE_NAME = r'strings.xml'
@@ -48,3 +49,9 @@ def get_translate_status(file=EXCEL_FILE_NAME):
 def auto_translate(file=EXCEL_FILE_NAME):
 	'''自动翻译'''
 	at.auto_translate(file)
+
+def config_baidu_api(app_id, app_secret, mappings):
+	'''配置百度翻译api'''
+	config.APP_ID = app_id
+	config.APP_SECRET = app_secret
+	config.MAPPING = mappings

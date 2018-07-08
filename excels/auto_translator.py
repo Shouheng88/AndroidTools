@@ -44,8 +44,11 @@ def translate(map_to_translate):
     for sheet_name, queue in map_to_translate.items():
         for element in queue:
             translated = api.translate(element[MAP_KEY_ORIGINAL], sheet_name)
-            element[MAP_KEY_TRANSLATED] = translated
             index += 1
+            if translated == '':
+                print('一个词条翻译出错')
+                continue
+            element[MAP_KEY_TRANSLATED] = translated
             print('%d个词条已翻译'%index)
     return map_to_translate
 
