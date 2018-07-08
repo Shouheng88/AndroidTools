@@ -31,6 +31,6 @@ def write_xml(file_appendix, dist, create_dir):
     content += '</resources>'
 
     # 将内容写入到文件中
-    with open(file_path, 'w') as f:
+    with open(file_path, 'w', encoding='utf-8') as f:
         f.write(content)
  

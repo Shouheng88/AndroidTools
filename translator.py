@@ -7,6 +7,7 @@ import xmls.xml_reader as xr
 import xmls.xml_writer as xw
 import excels.excel_writer as ew
 import excels.excel_reader as er
+import excels.auto_translator as at
 
 EXCEL_FILE_NAME = r'Translate.xls'
 STRINGS_XML_FILE_NAME = r'strings.xml'
@@ -46,4 +47,4 @@ def get_translate_status(file=EXCEL_FILE_NAME):
 
 def auto_translate(file=EXCEL_FILE_NAME):
 	'''自动翻译'''
-	
+	at.auto_translate(file)

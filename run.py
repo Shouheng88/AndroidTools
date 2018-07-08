@@ -61,6 +61,7 @@ def config_logging():
     LOG_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
     DATE_FORMAT = "%m/%d/%Y %H:%M:%S %p"
     logging.basicConfig(filename='translator.log', filemode='a', level=logging.DEBUG, format=LOG_FORMAT, datefmt=DATE_FORMAT)
+    logging.FileHandler(filename='translator.log', encoding='utf-8')
 
 def get_commond(msg):
     '''获取输入的命令'''
