@@ -6,6 +6,8 @@ import logging
 import os
 import json
 
+from initializer import Initializer as initializer
+
 COMMOND_GEN_EXCEL = 'gen_excel'
 COMMOND_GEN_XML = 'gen_xml'
 COMMOND_TRANSLATE = 'translate'
@@ -18,8 +20,7 @@ API_CONFIG_FILE_PAHT = 'config.json'
 def run_commond():
     '''用于在命令行窗口中执行的代码块'''
     config_logging()
-    show_msg()    
-    
+    show_msg()
     while True:
         msg = input('>>> ')
         cmd = get_commond(msg)
@@ -59,12 +60,6 @@ def on_help():
     '''输入帮助'''
     show_msg()
 
-def config_logging():
-    '''配置日志'''
-    LOG_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
-    DATE_FORMAT = "%m/%d/%Y %H:%M:%S %p"
-    logging.basicConfig(filename='translator.log', filemode='a', level=logging.DEBUG, format=LOG_FORMAT, datefmt=DATE_FORMAT)
-    logging.FileHandler(filename='translator.log', encoding='utf-8')
 
 def get_commond(msg):
     '''获取输入的命令'''
@@ -167,5 +162,11 @@ def get_api_config():
     logging.debug(translator.config.MAPPING)
     return True
 
-# 运行程序
-run_commond()
+if __name__ == "__main__":
+    initializer = initializer()
+    if initializer.is_repo_initialized() :
+        # 进入项目初始化页面
+        print("a")
+    else:
+        # 进入正常编辑页面
+        print("b")
