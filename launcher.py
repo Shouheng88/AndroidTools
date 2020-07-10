@@ -3,9 +3,11 @@
 
 import logging
 import tkinter
-from tkinter import *
-from initializer import *
-from app_gui import *
+from tkinter import Tk
+from initializer import LanguageFactory
+from initializer import Initializer
+from app_gui import MainDialog
+from app_gui import RepoInitDialog
 
 def __config_logging():
     '''配置日志'''

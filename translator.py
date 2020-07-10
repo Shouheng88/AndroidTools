@@ -5,8 +5,9 @@ import requests
 import hashlib
 import logging
 import json
-
-API_URL = 'http://api.fanyi.baidu.com/api/trans/vip/translate' # 百度语音识别 API
+from config import API_URL
+from config import BAIDU_CONFIG_URL
+from repository import repository
 
 # 百度翻译工具类
 class BaiduTranslator:
@@ -47,7 +48,7 @@ class BaiduTranslator:
 
     # 加载配置文件
     def __load_configs(self):
-        with open("config/baidu_api_config.json") as fp:
+        with open(BAIDU_CONFIG_URL) as fp:
             data = json.load(fp)
             logging.debug(data["mappings"])
             self.mappings = data["mappings"]
@@ -69,3 +70,15 @@ class BaiduTranslator:
         md5_result = hl.hexdigest()
         dist['sign'] = md5_result
         return dist
+
+# 翻译工具类
+class Translator:
+    # 初始化
+    def __init__(self):
+        pass
+
+    # 开始翻译
+    def start_translate(self, progress_callback):
+        repository.load()
+        logging.debug("Repo loaded!")
+        progress_callback(10)
