@@ -6,6 +6,7 @@ import xml.dom.minidom
 import logging
 import json
 import xlwt
+import os
 import xlrd
 from config import TRANSLATE_EXCEL_SHEET_NAME
 
@@ -37,8 +38,14 @@ class XmlOperator:
         return dist
 
     # 将 Android 的 xml 资源写入到文件中
-    def write_android_resources(self, fname, dist):
-        pass
+    def write_android_resources(self, dist, fname):
+        logging.debug("Writing Android resources " + fname + " : " + str(dist))
+        content = '<resources>\n'
+        for k, v in dist.items():
+            content += '    <string name="' + k + '">' + v + '</string>\n'
+        content += '</resources>'
+        with open(fname, 'w', encoding='utf-8') as f:
+            f.write(content)
 
 # Json 操作类
 class JsonOperator:

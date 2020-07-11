@@ -4,6 +4,7 @@
 import os
 from repository import repository as repository
 from file_operator import ExcelOperator as ExcelOperator
+from file_operator import XmlOperator as XmlOperator
 from config import TRANSLATE_EXCEL_SHEET_NAME
 from config import TRANSLATE_EXCEL_FILE_NAME
 
@@ -37,7 +38,24 @@ class Generator:
 
     # 生成 Android 多语言资源
     def gen_android_resources(self):
-        pass
+        repository.load()
+        android_blacklist = self.appConfig.android_language_black_list
+        xmlOperator = XmlOperator()
+        for language in repository.languages:
+            if language in android_blacklist:
+                continue
+            dist = {}
+            for data in repository.datas:
+                keyword = data["keyword"]
+                translates = data["translates"]
+                translation = translates[language]
+                dist[keyword] = translation
+            # 写入资源
+            language_dir = os.path.join(self.appConfig.android_resources_root_directory, "values-" + language)
+            if not os.path.exists(language_dir):
+                os.mkdir(language_dir)
+            fname = os.path.join(language_dir, "strings.xml")
+            xmlOperator.write_android_resources(dist, fname)
 
     # 生成 iOS 多语言资源
     def gen_ios_resources(self):
