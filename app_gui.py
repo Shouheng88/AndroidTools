@@ -4,6 +4,7 @@
 from tkinter import *
 import logging
 import os
+import threading
 from tkinter.filedialog import askdirectory
 from tkinter.messagebox import askokcancel
 from tkinter.filedialog import askopenfilename
@@ -81,6 +82,7 @@ class MainDialog(Frame):
         self.importer = Importer(appConfig)
         self.generator = Generator(appConfig)
         self.translate_progress = StringVar()
+        self.translate_started = False
         Frame.__init__(self, root)
         frame = Frame(root)
         frame.pack()
@@ -159,16 +161,29 @@ class MainDialog(Frame):
     def auto_translate(self):
         ret = repository.get_repo_state()
         missed_cuount = ret["missed_count"]
+        if self.translate_started:
+            showinfo(title='翻译已启动', message='翻译已经启动，程序正在翻译中……')
+            return
         if missed_cuount == 0:
             showinfo(title='已全部翻译完成', message='所有词条已经翻译完毕，无需进行自动翻译')
         else:
-            translator = Translator()
-            translator.start_translate(self.on_translation_progress_changed)
+            thread = threading.Thread(target=self.__start_translate)
+            thread.start()
+            self.translate_started = True
+
+    # 正在开始执行翻译
+    def __start_translate(self):
+        translator = Translator()
+        translator.start_translate(self.on_translation_progress_changed, self.on_translation_finished)
 
     # 通知翻译进度变化
     def on_translation_progress_changed(self, progress):
         logging.debug("On translation progress changed " + str(progress))
-        self.translate_progress.set("当前进度:" + str(progress))
+        self.translate_progress.set("当前进度: %d%%" % progress)
+
+    # 增加一个完成的回调
+    def on_translation_finished(self):
+        self.translate_started = False
 
     # 生成 iOS 资源目录
     def __generate_ios_resources_finaly(self):

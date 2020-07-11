@@ -79,6 +79,26 @@ class Repository:
                     break
         return {"missed_count": missed_count}
 
+    # 获取用于翻译的多语言
+    def get_keywords_to_translate(self):
+        self.load()
+        dist = {}
+        for data in self.datas:
+            keyword = data["keyword"]
+            to_languages = []
+            from_language = ""
+            from_translation = ""
+            for k,v in data["translates"].items():
+                if len(v) == 0:
+                    to_languages.append(k)
+                else:
+                    from_language = k
+                    from_translation = v
+            dist[keyword] = []
+            for language in to_languages:
+                dist[keyword].append({"translation":from_translation, "from":from_language, "to":language})
+        return dist
+
     # 初始化词条的多语言
     def __init_keyword_translations(self, translation, translations, language):
         for l in self.languages:
