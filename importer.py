@@ -126,7 +126,19 @@ class Importer:
     # 比较改动的文件
     def update_ios_resource(self):
         repository.load()
-        pass
+        fileOperator = FileOperator()
+        for f in os.listdir(self.appConfig.ios_resources_root_directory):
+            language = self.__get_ios_file_language(f)
+            if len(language) <= 0:
+                continue
+            # 语言名称
+            repository.try_to_add_new_language(language)
+            path = os.path.join(self.appConfig.ios_resources_root_directory, f, "Localizable.strings")
+            dist = fileOperator.read_ios_keywords(path)
+            for k, v in dist.items():
+                repository.try_to_add_new_keyword(k, v, language)
+        # 重写 repo json
+        repository.rewrite_repo_json()
 
     # 比较改动的文件
     def update_android_resource(self):

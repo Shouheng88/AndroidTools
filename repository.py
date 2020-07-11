@@ -33,10 +33,11 @@ class Repository:
     # 尝试添加新的语言
     def try_to_add_new_language(self, language):
         if language not in self.languages:
-            for data in self.datas:
-                data["translates"].append({language, ""})
-            logging.info("Language added : " + language)
             self.languages.append(language)
+            logging.debug("Tring to add new language " + language + " into " + str(self.datas))
+            for data in self.datas:
+                data["translates"][language] = ""
+            logging.info("Language added : " + language)
             return
         logging.info("Language exists : " + language)
 
@@ -47,13 +48,21 @@ class Repository:
             self.__init_keyword_translations(translation, translations, language)
             # 添加一个新的词条
             self.datas.append({"keyword": keyword, "comment": "", "translates": translations})
+            self.keywords.append(keyword)
         else:
             # 判断词条是否发生了变更（之前调用 try_to_add_new_language 的时候处理了新增多语言的情况）
             for data in self.datas:
                 if data["keyword"] == keyword:
                     old_translation = data["translates"][language]
-                    if old_translation != translation:
+                    # 应该过滤掉 old_translation 为空掉情况，此时说明它已经被处理过了，没必要再次处理
+                    # 所以这就意味着不要一次更改两个多语言文件的同一词条，因为我们通过词条变更来确定哪些词条的多语言需要重新翻译，
+                    # 如果同时修改，那么只能以多语言文件列表的第一个文件的改动为准，因此造成结果不可预知
+                    # 建议通过导出 Excel 的方式，通过修改 Excel 并重新导入到项目中的方式来导入自己翻译的多语言
+                    if old_translation != translation and len(old_translation) != 0:
+                        logging.debug("Found translation change for : " + keyword + " (" + language + ").")
                         self.__init_keyword_translations(translation, data["translates"], language)
+                    # 处理完毕，找到一个就可以结束了
+                    break
 
     # 更新多语言词条
     def update_keyword(self, keyword, translation, language):

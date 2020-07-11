@@ -39,12 +39,11 @@ class RepoInitDialog(Frame):
         # 选择要支持的语言
         languageFrame = Frame(root)
         languageFrame.pack()
-        languages = appConfig.languages
         colCount = -1
-        for k,v in languages.items():
+        for k,v in appConfig.languages.items():
             colCount = colCount + 1
-            self.support_languages[v] = BooleanVar()
-            Checkbutton(languageFrame, text=k, variable=self.support_languages[v]).grid(row=2, column=colCount)
+            self.support_languages[k] = BooleanVar()
+            Checkbutton(languageFrame, text=k, variable=self.support_languages[k]).grid(row=2, column=colCount)
         # 初始化按钮
         startFrame = Frame(root)
         startFrame.pack()
@@ -66,7 +65,8 @@ class RepoInitDialog(Frame):
         support_languages = []
         for k,v in self.support_languages.items():
             if v.get():
-                support_languages.append(k)
+                for language in appConfig.languages[k]:
+                    support_languages.append(language)
         # 初始化项目仓库
         init = Initializer()
         init.initialize(self.android_resources_dir.get(), self.ios_resources_dir.get(), support_languages)
@@ -134,9 +134,8 @@ class MainDialog(Frame):
     # 生成用来翻译的 Excel 表格
     def generate_translate_resources(self):
         # 导出到的文件夹
-        if len(appConfig.translate_excel_output_directory) == 0:
-            appConfig.translate_excel_output_directory = askdirectory()
-            appConfig.write_to_json()
+        appConfig.translate_excel_output_directory = askdirectory()
+        appConfig.write_to_json()
         # 导出 Excel 文件
         self.generator.gen_translate_excel(appConfig.translate_excel_output_directory)
         showinfo(title='导出完成', message='已导出翻译 Excel 到 %s ！' % appConfig.translate_excel_output_directory)
@@ -149,11 +148,21 @@ class MainDialog(Frame):
 
     # 更新 Android 多语言
     def update_android_resource(self):
+        # 如果没有设置过多语言根目录就设置下
+        if len(appConfig.android_resources_root_directory) == 0:
+            showinfo(title='提示', message='您在初始化项目的时候并没有为 Android 指定多语言根目录，无法完成更新。您可以尝试备份并删除 repo.json 文件重新初始化项目仓库。')
+            return
+        # 开始更新
         self.importer.update_android_resource()
         showinfo(title='更新完成', message='已更新到多语言仓库！')
 
     # 更新 iOS 多语言
     def update_ios_resource(self):
+        # 如果没有设置过多语言根目录就设置下
+        if len(appConfig.ios_resources_root_directory) == 0:
+            showinfo(title='提示', message='您在初始化项目的时候并没有为 iOS 指定多语言根目录，无法完成更新。您可以尝试备份并删除 repo.json 文件重新初始化项目仓库。')
+            return
+        # 开始更新
         self.importer.update_ios_resource()
         showinfo(title='更新完成', message='已更新到多语言仓库！')
 
@@ -190,6 +199,7 @@ class MainDialog(Frame):
     def __generate_ios_resources_finaly(self):
         # 如果没设置 iOS 资源目录，则需要选择下
         if len(appConfig.ios_resources_root_directory) == 0:
+            showinfo(title='提示', message='请先选择 iOS 多语言资源根目录')
             appConfig.ios_resources_root_directory = askdirectory()
             appConfig.write_to_json()
         # 生成
@@ -200,6 +210,7 @@ class MainDialog(Frame):
     def __generate_android_resources_finaly(self):
         # 如果没设置 Android 资源目录，则需要选择下
         if len(appConfig.android_resources_root_directory) == 0:
+            showinfo(title='提示', message='请先选择 Android 多语言资源根目录')
             appConfig.android_resources_root_directory = askdirectory()
             appConfig.write_to_json()
         # 生成

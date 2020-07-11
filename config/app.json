@@ -1,14 +1,30 @@
 {
   "language": "zh",
-  "support_languages": ["zh", "zh-rTW", "zh-rHK", "ru", "ja", "en", "es", "ko"],
+  "support_languages": [],
   "languages": {
-    "\u4e2d\u6587\u7b80\u4f53": "zh",
-    "\u4e2d\u6587\uff08\u53f0\u6e7e\uff09": "zh-rTW",
-    "\u4e2d\u6587\uff08\u9999\u6e2f\uff09": "zh-rHK"
+    "中文简体": ["zh", "zh-rCN"],
+    "中文（台湾）": ["zh-rTW"],
+    "中文（香港）": ["zh-rHK"],
+    "德语": ["de-rAT", "de-rCH", "de-rDE", "de-rLI"],
+    "法语": ["fr-rBE", "fr-rCA", "fr-rCH", "fr-rFR"],
+    "日语": ["ja"],
+    "英语": [
+      "en",
+      "en-rUS",
+      "en-rGB",
+      "en-rAU",
+      "en-rCA",
+      "en-rIE",
+      "en-rIN",
+      "en-rNZ",
+      "en-rSG",
+      "en-rZ"
+    ],
+    "韩语": ["ko", "ko-rKR"]
   },
   "ios_language_black_list": [],
   "android_language_black_list": [],
   "ios_resources_root_directory": "",
-  "android_resources_root_directory": "/Users/wangshouheng/Desktop/github/python/app-i18n/Android",
-  "translate_excel_output_directory": "/Users/wangshouheng/Desktop"
+  "android_resources_root_directory": "",
+  "translate_excel_output_directory": ""
 }
