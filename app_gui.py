@@ -184,6 +184,7 @@ class MainDialog(Frame):
     # 增加一个完成的回调
     def on_translation_finished(self):
         self.translate_started = False
+        showinfo(title='翻译完成', message='已完成翻译任务')
 
     # 生成 iOS 资源目录
     def __generate_ios_resources_finaly(self):
@@ -193,6 +194,7 @@ class MainDialog(Frame):
             appConfig.write_to_json()
         # 生成
         self.generator.gen_ios_resources()
+        showinfo(title='导出完成', message='已导出 iOS 多语言文件到 ' + appConfig.ios_resources_root_directory)
 
     # 生成 Android 资源目录
     def __generate_android_resources_finaly(self):
@@ -202,3 +204,4 @@ class MainDialog(Frame):
             appConfig.write_to_json()
         # 生成
         self.generator.gen_android_resources()
+        showinfo(title='导出完成', message='已导出 Android 多语言文件到 ' + appConfig.android_resources_root_directory)

@@ -7,6 +7,7 @@ import json
 from file_operator import ExcelOperator as ExcelOperator
 from file_operator import XmlOperator as XmlOperator
 from file_operator import JsonOperator as JsonOperator
+from file_operator import FileOperator as FileOperator
 from repository import repository as repository
 from config import REPO_CONFIG_PATH
 from config import TRANSLATE_EXCEL_SHEET_NAME
@@ -52,7 +53,32 @@ class Importer:
 
     # 项目初始化的时候，导入 iOS 翻译资源（lproj 文件夹根目录）
     def import_ios_resources(self):
-        pass
+        fileOperator = FileOperator()
+        for f in os.listdir(self.appConfig.ios_resources_root_directory):
+            language = self.__get_ios_file_language(f)
+            if len(language) <= 0:
+                continue
+            # 语言名称
+            self.support_languages.append(language)
+            path = os.path.join(self.appConfig.ios_resources_root_directory, f, "Localizable.strings")
+            dist = fileOperator.read_ios_keywords(path)
+            logging.debug("Read iOS keywords : " + str(dist))
+            for k, v in dist.items():
+                if k not in self.keywords:
+                    self.keywords.append(k)
+                if k not in self.translates:
+                    self.translates[k] = {}
+                self.translates[k][language] = v
+        # 新增多语言的情况
+        for sl in self.appConfig.support_languages:
+            if sl not in self.support_languages:
+                for k, v in self.translates.items():
+                    self.translates[k][sl] = ""
+        # 输出用于调试的日志
+        self.appConfig.add_support_languages(self.support_languages)
+        logging.debug("Parsed From iOS Resources : " + str(self.support_languages))
+        logging.debug("Parsed Keywords : " + str(self.keywords))
+        logging.debug(self.translates)
 
     # 生成多语言仓库配置文件
     def gen_repo_config(self):
@@ -123,14 +149,27 @@ class Importer:
 
     # Android：从文件名中获取文件的多语言
     def __get_android_file_language(self, f):
+        language = ""
+        if len(f) > 7:
+            language = f[7:] # values-xx
+        else:
+            language = "default"
+        # 读取 xml 内容
+        path = os.path.join(self.appConfig.android_resources_root_directory, f, "strings.xml")
+        if not os.path.exists(path):
+            logging.error("Language file not found : " + path)
             language = ""
-            if len(f) > 7:
-                language = f[7:] # values-xx
-            else:
-                language = "default"
-            # 读取 xml 内容
-            path = os.path.join(self.appConfig.android_resources_root_directory, f, "strings.xml")
-            if not os.path.exists(path):
-                logging.error("Language file not found : " + path)
-                language = ""
-            return language
+        return language
+
+    # iOS：从文件名中获取文件的多语言
+    def __get_ios_file_language(self, f):
+        language = ""
+        if len(f) > 5:
+            language = f[0:-6]
+        else:
+            language = "default"
+        path = os.path.join(self.appConfig.ios_resources_root_directory, f, "Localizable.strings")
+        if not os.path.exists(path):
+            logging.error("Language file not found : " + path)
+            language = ""
+        return language

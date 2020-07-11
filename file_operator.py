@@ -7,6 +7,7 @@ import logging
 import json
 import xlwt
 import os
+import codecs
 import xlrd
 from config import TRANSLATE_EXCEL_SHEET_NAME
 
@@ -63,6 +64,36 @@ class JsonOperator:
     def read_json(self, fname):
         with open(fname, "r") as f:
             return json.load(f)
+
+# 文件操作类，用于 iOS 文件操作
+class FileOperator:
+    # 初始化
+    def __init__(self):
+        pass
+
+    # 读取 iOS 词条
+    def read_ios_keywords(self, fname):
+        logging.debug("Reading ios keywrods : " + fname)
+        dist = {}
+        with open(fname, 'r') as f:
+            # 读取每一行的数据
+            ls = [line.strip() for line in f]
+            f.close()
+            for l in ls:
+                sps = l.split("=")
+                keyword = sps[0].strip()[1:-1]
+                translation = sps[1].strip()[1:-2]
+                dist[keyword] = translation
+        return dist
+
+    # 生成 iOS 的多语言资源
+    def write_ios_resources(self, dist, fname):
+        logging.debug("Writing iOS resources " + fname + " : " + str(dist))
+        content = ''
+        for k, v in dist.items():
+            content = content + "\"" + k + "\" = \"" + v + "\";\n"
+        with open(fname, 'w', encoding='utf-8') as f:
+            f.write(content)
 
 # Excel 操作类
 class ExcelOperator:

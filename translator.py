@@ -121,7 +121,7 @@ class Translator:
                     mapped_language = result["mapped_language"]
                     # 反向的映射关系填充翻译结果
                     reversed_mappings = translator.get_reversed_mapped_languages(mapped_language)
-                    logging.debug("Ger reversed mappings for " + mapped_language + " : " + str(reversed_mappings))
+                    logging.debug("Get reversed mappings for " + mapped_language + " : " + str(reversed_mappings))
                     for reversed_mapping in reversed_mappings:
                         # 标记方向映射列表，更新词条信息
                         translated_languages.append(reversed_mapping)

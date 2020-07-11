@@ -5,6 +5,7 @@ import os
 from repository import repository as repository
 from file_operator import ExcelOperator as ExcelOperator
 from file_operator import XmlOperator as XmlOperator
+from file_operator import FileOperator as FileOperator
 from config import TRANSLATE_EXCEL_SHEET_NAME
 from config import TRANSLATE_EXCEL_FILE_NAME
 
@@ -42,6 +43,7 @@ class Generator:
         android_blacklist = self.appConfig.android_language_black_list
         xmlOperator = XmlOperator()
         for language in repository.languages:
+            # 过滤黑名单
             if language in android_blacklist:
                 continue
             dist = {}
@@ -59,4 +61,22 @@ class Generator:
 
     # 生成 iOS 多语言资源
     def gen_ios_resources(self):
-        pass
+        repository.load()
+        ios_blacklist = self.appConfig.ios_language_black_list
+        fileOperator = FileOperator()
+        for language in repository.languages:
+            # 过滤黑名单
+            if language in ios_blacklist:
+                continue
+            dist = {}
+            for data in repository.datas:
+                keyword = data["keyword"]
+                translates = data["translates"]
+                translation = translates[language]
+                dist[keyword] = translation
+            # 写入资源
+            language_dir = os.path.join(self.appConfig.ios_resources_root_directory, language + ".lproj")
+            if not os.path.exists(language_dir):
+                os.mkdir(language_dir)
+            fname = os.path.join(language_dir, "Localizable.strings")
+            fileOperator.write_ios_resources(dist, fname)
