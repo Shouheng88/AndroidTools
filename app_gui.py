@@ -16,6 +16,7 @@ from initializer import Initializer
 from importer import Importer as Importer
 from generator import Generator as Generator
 from translator import Translator as Translator
+from translator import BaiduTranslator as BaiduTranslator
 
 # 仓库初始化对话框
 class RepoInitDialog(Frame):
@@ -168,6 +169,10 @@ class MainDialog(Frame):
 
     # 自动进行多语言翻译
     def auto_translate(self):
+        bd = BaiduTranslator()
+        if not bd.is_configed():
+            showinfo(title='百度 API 没有配置', message='请在 config/baidu.json 文件中填写您在平台申请的 appid 和 appsecret 之后再尝试！')
+            return
         ret = repository.get_repo_state()
         missed_cuount = ret["missed_count"]
         if self.translate_started:

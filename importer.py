@@ -26,12 +26,18 @@ class Importer:
     def import_android_resources(self):
         # 遍历解析 Android 资源目录
         xmlOperator = XmlOperator()
+        # 解析所有的多语言
         for f in os.listdir(self.appConfig.android_resources_root_directory):
             language = self.__get_android_file_language(f)
             if len(language) <= 0:
                 continue
             # 语言名称
             self.support_languages.append(language)
+        # 解析多语言的词条
+        for f in os.listdir(self.appConfig.android_resources_root_directory):
+            language = self.__get_android_file_language(f)
+            if len(language) <= 0:
+                continue
             path = os.path.join(self.appConfig.android_resources_root_directory, f, "strings.xml")
             dist = xmlOperator.read_android_resources(path)
             for k, v in dist.items():
@@ -39,8 +45,12 @@ class Importer:
                     self.keywords.append(k)
                 if k not in self.translates:
                     self.translates[k] = {}
-                self.translates[k][language] = v
-        # 新增多语言的情况
+                    for support_language in self.support_languages:
+                        if support_language != language:
+                            self.translates[k][support_language] = ""
+                        else:
+                            self.translates[k][support_language] = v
+        # 新增多语言的情况：要为应用初始化的时候选中的多语言设置词条
         for sl in self.appConfig.support_languages:
             if sl not in self.support_languages:
                 for k, v in self.translates.items():
@@ -54,12 +64,18 @@ class Importer:
     # 项目初始化的时候，导入 iOS 翻译资源（lproj 文件夹根目录）
     def import_ios_resources(self):
         fileOperator = FileOperator()
+        # 解析所有的多语言
         for f in os.listdir(self.appConfig.ios_resources_root_directory):
             language = self.__get_ios_file_language(f)
             if len(language) <= 0:
                 continue
             # 语言名称
             self.support_languages.append(language)
+        # 解析多语言的词条
+        for f in os.listdir(self.appConfig.ios_resources_root_directory):
+            language = self.__get_ios_file_language(f)
+            if len(language) <= 0:
+                continue
             path = os.path.join(self.appConfig.ios_resources_root_directory, f, "Localizable.strings")
             dist = fileOperator.read_ios_keywords(path)
             logging.debug("Read iOS keywords : " + str(dist))
@@ -68,8 +84,12 @@ class Importer:
                     self.keywords.append(k)
                 if k not in self.translates:
                     self.translates[k] = {}
-                self.translates[k][language] = v
-        # 新增多语言的情况
+                    for support_language in self.support_languages:
+                        if support_language != language:
+                            self.translates[k][support_language] = ""
+                        else:
+                            self.translates[k][support_language] = v
+        # 新增多语言的情况：要为应用初始化的时候选中的多语言设置词条
         for sl in self.appConfig.support_languages:
             if sl not in self.support_languages:
                 for k, v in self.translates.items():
