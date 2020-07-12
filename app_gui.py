@@ -89,24 +89,49 @@ class MainDialog(Frame):
         frame.pack()
         # 更新词条
         # Label(frame, text="", justify=LEFT).grid(row=1, column=1)
-        Label(frame, text="1、更新多语言词条：", justify=LEFT).grid(row=2, column=1)
+        Label(frame, text="1.更新词条", justify=LEFT).grid(row=2, column=1)
         Button(frame, text="更新 Android 多语言词条", command=self.update_android_resource).grid(row=2, column=2)
         Button(frame, text="更新 iOS 多语言词条", command=self.update_ios_resource).grid(row=2, column=3)
         # 自助翻译
         # Label(frame, text="", justify=LEFT).grid(row=3, column=1)
-        Label(frame, text="2、自助翻译：", justify=LEFT).grid(row=4, column=1)
-        Button(frame, text="开始翻译", command=self.auto_translate).grid(row=4, column=2)
+        Label(frame, text="2.自助翻译", justify=LEFT).grid(row=4, column=1)
+        Button(frame, text="自动翻译", command=self.auto_translate).grid(row=4, column=2)
         Label(frame, textvariable=self.translate_progress).grid(row=4, column=3)
         # 导入翻译资源 导出翻译资源
         # Label(frame, text="", justify=LEFT).grid(row=5, column=1)
-        Label(frame, text="3、导出/导入翻译资源(Excel)：", justify=LEFT).grid(row=6, column=1)
+        Label(frame, text="3.人工翻译", justify=LEFT).grid(row=6, column=1)
         Button(frame, text="导出翻译资源(Excel)", command=self.generate_translate_resources).grid(row=6, column=2)
         Button(frame, text="导入翻译资源(Excel)", command=self.import_translated_excel).grid(row=6, column=3)
         # 生成多语言资源
         # Label(frame, text="", justify=LEFT).grid(row=7, column=1)
-        Label(frame, text="4、生成多语言资源：", justify=LEFT).grid(row=8, column=1)
+        Label(frame, text="4.生成资源", justify=LEFT).grid(row=8, column=1)
         Button(frame, text="生成 Android 多语言资源", command=self.generate_android_resources).grid(row=8, column=2)
         Button(frame, text="生成 iOS 多语言资源", command=self.generate_ios_resources).grid(row=8, column=3)
+        # 校验多语言资源
+        # Label(frame, text="", justify=LEFT).grid(row=9, column=1)
+        Label(frame, text="5.校验资源", justify=LEFT).grid(row=10, column=1)
+        Button(frame, text="将 Android 多语言资源修改结果同步到仓库", command=self.import_modified_android_resource).grid(row=10, column=2)
+        Button(frame, text="将 iOS 多语言资源修改结果同步到仓库", command=self.import_modified_ios_resource).grid(row=10, column=3)
+
+    # 将 Android 多语言资源修改结果同步到仓库
+    def import_modified_android_resource(self):
+        # 如果没有设置过多语言根目录就设置下
+        if len(appConfig.android_resources_root_directory) == 0:
+            showinfo(title='提示', message='您在初始化项目的时候并没有为 Android 指定多语言根目录，无法完成更新。您可以尝试备份并删除 repo.json 文件重新初始化项目仓库。')
+            return
+        # 开始更新
+        self.importer.import_modified_android_resource()
+        showinfo(title='更新完成', message='已更新到多语言仓库！')
+
+    # 将 iOS 多语言资源修改结果同步到仓库
+    def import_modified_ios_resource(self):
+        # 如果没有设置过多语言根目录就设置下
+        if len(appConfig.ios_resources_root_directory) == 0:
+            showinfo(title='提示', message='您在初始化项目的时候并没有为 iOS 指定多语言根目录，无法完成更新。您可以尝试备份并删除 repo.json 文件重新初始化项目仓库。')
+            return
+        # 开始更新
+        self.importer.import_modified_ios_resource()
+        showinfo(title='更新完成', message='已更新到多语言仓库！')
 
     # 生成 Android 多语言资源
     def generate_android_resources(self):

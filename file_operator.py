@@ -21,19 +21,43 @@ class XmlOperator:
     def read_android_resources(self, fname):
         logging.debug("Reading Android resources of \"" + fname + "\"")
         # 使用 minidom 解析器打开 XML 文档
-        DOMTree = xml.dom.minidom.parse(fname)
+        dist = {}
+        try:
+            DOMTree = xml.dom.minidom.parse(fname)
+        except Exception:
+            logging.error("Failed to read Android resources : " + fname)
+            return dist
         collection = DOMTree.documentElement
         # 读取所有 string 标签
         strings = collection.getElementsByTagName("string")
         # 将读取到的所有元素拼接成字典列表
-        dist = {}
         index = 0
         for string in strings:
             index += 1
-            if string.hasAttribute('name'):
-                dist[string.getAttribute('name')] = string.childNodes[0].data
-            else:
-                raise Exception('Invliad string definition at index : ', index)
+            try:
+                keyword = string.getAttribute('name')
+                translation = ""
+                if len(string.childNodes) == 1:
+                    node = string.childNodes[0]
+                    # CDATA 特殊处理
+                    if node.nodeType == 4:
+                        translation = "<![CDATA[" + str(node.data) + "]]>"
+                    else:
+                        translation = node.data
+                else:
+                    # 对子节点遍历，将所有对子节点拼接起来
+                    for node in string.childNodes:
+                        # CDATA 特殊处理
+                        if node.nodeType == 4:
+                            translation = translation + "<![CDATA[" + str(node.data) + "]]>"
+                        else:
+                            translation = translation + node.toxml()
+                # 过滤处理
+                if '\\\'' in translation:
+                    translation = translation.replace('\\\'', '\'')
+                dist[keyword] = translation
+            except BaseException as e:
+                logging.error("Invalid entry at index " + str(index) + " " + str(keyword) + " : " + str(e))
         # 返回解析结果
         logging.debug("Read Android resources \"" + fname + "\" end.")
         return dist
@@ -43,6 +67,17 @@ class XmlOperator:
         logging.debug("Writing Android resources " + fname + " : " + str(dist))
         content = '<resources>\n'
         for k, v in dist.items():
+            # 处理 '
+            if '\'' in v:
+                v = v.replace("\'", "\\\'")
+            # 处理 > 和 <
+            if ('>' in v or '<' in v) and '<![CDATA[' not in v and '<br' not in v and '<b' not in v and '<a' not in v and '<i' not in v and '<u' not in v and '<em' not in v and '<big' not in v and '<small' not in v and '<h' not in v:
+                v = v.replace('>', '&gt;')
+                v = v.replace('<', '&lt;')
+            # 处理 …
+            if '…' in v and '<![CDATA[' not in v:
+                v = v.replace('…', '&#8230;')
+            # 拼接
             content += '    <string name="' + k + '">' + v + '</string>\n'
         content += '</resources>'
         with open(fname, 'w', encoding='utf-8') as f:
