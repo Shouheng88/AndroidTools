@@ -44,9 +44,9 @@ class Repository:
     # 尝试添加新的词条
     def try_to_add_new_keyword(self, keyword, translation, language):
         if keyword not in self.keywords:
+            # 添加一个新的词条
             translations = {}
             self.__init_keyword_translations(translation, translations, language)
-            # 添加一个新的词条
             self.datas.append({"keyword": keyword, "comment": "", "translates": translations})
             self.keywords.append(keyword)
         else:
@@ -63,6 +63,18 @@ class Repository:
                         self.__init_keyword_translations(translation, data["translates"], language)
                     # 处理完毕，找到一个就可以结束了
                     break
+
+    # 修改词条
+    def try_ro_modify_keyword(self, keyword, translation, language):
+        # 不存在的语言不支持修改
+        if language not in self.languages:
+            return
+        # 遍历更新
+        for data in self.datas:
+            if data["keyword"] == keyword and language in data["translates"]:
+                if data["translates"][language] != translation:
+                    data["translates"][language] = translation
+                break
 
     # 更新多语言词条
     def update_keyword(self, keyword, translation, language):

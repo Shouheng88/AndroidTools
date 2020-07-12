@@ -51,7 +51,6 @@ class Generator:
             for data in repository.datas:
                 keyword = data["keyword"]
                 translates = data["translates"]
-                logging.debug("Generate " + keyword + " " + str(translates))
                 translation = translates[language]
                 dist[keyword] = translation
             # 写入资源

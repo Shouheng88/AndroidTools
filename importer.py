@@ -147,12 +147,18 @@ class Importer:
     def update_ios_resource(self):
         repository.load()
         fileOperator = FileOperator()
+        # 更新多语言
         for f in os.listdir(self.appConfig.ios_resources_root_directory):
             language = self.__get_ios_file_language(f)
             if len(language) <= 0:
                 continue
             # 语言名称
             repository.try_to_add_new_language(language)
+        # 更新词条
+        for f in os.listdir(self.appConfig.ios_resources_root_directory):
+            language = self.__get_ios_file_language(f)
+            if len(language) <= 0:
+                continue
             path = os.path.join(self.appConfig.ios_resources_root_directory, f, "Localizable.strings")
             dist = fileOperator.read_ios_keywords(path)
             for k, v in dist.items():
@@ -165,17 +171,56 @@ class Importer:
         repository.load()
         # 解析指定的多语言路径中的词条
         xmlOperator = XmlOperator()
+        # 更新多语言
         for f in os.listdir(self.appConfig.android_resources_root_directory):
             language = self.__get_android_file_language(f)
             if len(language) <= 0:
                 continue
             # 语言名称
             repository.try_to_add_new_language(language)
+        # 更新词条
+        for f in os.listdir(self.appConfig.android_resources_root_directory):
+            language = self.__get_android_file_language(f)
+            if len(language) <= 0:
+                continue
             path = os.path.join(self.appConfig.android_resources_root_directory, f, "strings.xml")
             # 词条新增 or 变更
             dist = xmlOperator.read_android_resources(path)
             for k, v in dist.items():
                 repository.try_to_add_new_keyword(k, v, language)
+        # 重写 repo json
+        repository.rewrite_repo_json()
+
+    # 将 iOS 多语言资源修改结果同步到仓库
+    def import_modified_ios_resource(self):
+        repository.load()
+        fileOperator = FileOperator()
+        # 更新词条
+        for f in os.listdir(self.appConfig.ios_resources_root_directory):
+            language = self.__get_ios_file_language(f)
+            if len(language) <= 0:
+                continue
+            path = os.path.join(self.appConfig.ios_resources_root_directory, f, "Localizable.strings")
+            dist = fileOperator.read_ios_keywords(path)
+            for k, v in dist.items():
+                repository.try_ro_modify_keyword(k, v, language)
+        # 重写 repo json
+        repository.rewrite_repo_json()
+
+    # 将 Android 多语言资源修改结果同步到仓库
+    def import_modified_android_resource(self):
+        repository.load()
+        xmlOperator = XmlOperator()
+        # 更新词条
+        for f in os.listdir(self.appConfig.android_resources_root_directory):
+            language = self.__get_android_file_language(f)
+            if len(language) <= 0:
+                continue
+            path = os.path.join(self.appConfig.android_resources_root_directory, f, "strings.xml")
+            # 词条新增 or 变更
+            dist = xmlOperator.read_android_resources(path)
+            for k, v in dist.items():
+                repository.try_ro_modify_keyword(k, v, language)
         # 重写 repo json
         repository.rewrite_repo_json()
 
