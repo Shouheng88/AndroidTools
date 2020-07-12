@@ -54,6 +54,10 @@ class BaiduTranslator:
     def get_reversed_mapped_languages(self, from_language):
         return self.reversed_mappings.get(from_language)
 
+    # 判断是否配置完成
+    def is_configed(self):
+        return self.appid != "your_app_id" and self.secret != "your_app_secret"
+
     # 获取指定的语言对应的 Baidu 翻译语言参数
     def __get_mapped_language(self, language):
         return self.mappings.get(language)

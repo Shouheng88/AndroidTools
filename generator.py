@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import logging
 from repository import repository as repository
 from file_operator import ExcelOperator as ExcelOperator
 from file_operator import XmlOperator as XmlOperator
@@ -50,10 +51,12 @@ class Generator:
             for data in repository.datas:
                 keyword = data["keyword"]
                 translates = data["translates"]
+                logging.debug("Generate " + keyword + " " + str(translates))
                 translation = translates[language]
                 dist[keyword] = translation
             # 写入资源
-            language_dir = os.path.join(self.appConfig.android_resources_root_directory, "values-" + language)
+            filename = "values" if language == "default" else "values-" + language
+            language_dir = os.path.join(self.appConfig.android_resources_root_directory, filename)
             if not os.path.exists(language_dir):
                 os.mkdir(language_dir)
             fname = os.path.join(language_dir, "strings.xml")
