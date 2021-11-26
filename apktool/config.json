@@ -1,0 +1,6 @@
+{
+    "package": "com/netease/cloudmusic",
+    "keywords": ["sysdebug"],
+    "methods": ["Ljava/lang/StringBuilder;-><init>()V"],
+    "traceback": "False"
+}
