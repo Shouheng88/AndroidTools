@@ -29,9 +29,12 @@ class SmaliSearcherConfiguration:
         # The methods to search, like 'Ljava/lang/StringBuilder;-><init>()V'
         self.methods = []
         self.traceback = True
+        self.result_store_path = "."
     
     def __str__(self) -> str:
-        return "SmaliSearcherConfiguration [%s][%s][%s][%s]" % (self.package, self.keywords, self.methods, str(self.traceback))
+        return "SmaliSearcherConfiguration [%s][%s][%s][%s][%s]" \
+            % (self.package, self.keywords, self.methods, \
+                str(self.traceback), self.result_store_path)
 
 class SmaliMethod: 
     '''Smali method wrapper class.'''
@@ -44,6 +47,10 @@ class SmaliMethod:
     
     def prepare_for_traceback(self, configuration: SmaliSearcherConfiguration):
         '''Prepare the smali method.'''
+        # To avoid multiple calculation.
+        if self.pattern != '':
+            return
+        # Calculate method pattern.
         h_index = self.path.find(configuration.package)
         r_index = self.path.find(".smali")
         if h_index >= 0 and r_index >= 0:
@@ -54,8 +61,13 @@ class SmaliMethod:
         else:
             logging.error("Illegal traceback method: %s" % str(self))
 
+    def calculate_pattern(self, configuration: SmaliSearcherConfiguration):
+        '''Calculate pattern.'''
+        self.prepare_for_traceback(configuration)
+
     def __str__(self) -> str:
-        return "SmaliMethod [%s][%s][%s][%s][%d]" % (str(self.private), self.method_name, self.path, self.pattern, self.traceback_count)
+        return "SmaliMethod [%s][%s][%s][%s][%d]" % (str(self.private), \
+            self.method_name, self.path, self.pattern, self.traceback_count)
 
 class SmaliSercherResult:
     '''The smali searcher result.'''
@@ -69,6 +81,29 @@ class SmaliSercherResult:
             self.keywords[keyword] = []
         for method in configuration.methods:
             self.methods[method] = []
+
+    def to_json(self, configuration: SmaliSearcherConfiguration):
+        '''Transfer object to json.'''
+        json_obj = {
+            "keywords": {},
+            "methods": {}
+        }
+        # Prepare keywords json map.
+        for k, items in self.keywords.items():
+            for item in items:
+                item.calculate_pattern(configuration)
+                if k not in json_obj["keywords"]:
+                    json_obj["keywords"][k] = []
+                json_obj["keywords"][k].append({k: item.pattern})
+        # Prepare methods json map.
+        for k, items in self.methods.items():
+            for item in items:
+                item.calculate_pattern(configuration)
+                if k not in json_obj["methods"]:
+                    json_obj["methods"][k] = []
+                json_obj["methods"][k].append({k: item.pattern})
+        # Return json object.
+        return json_obj
 
 def decompile(apk: str = None):
     '''Decompile the APK.'''
@@ -116,6 +151,8 @@ def search_by_depth_visit(dir: str, configuration: SmaliSearcherConfiguration=No
     # Traceback usages: find where these methods all called.
     if configuration.traceback:
         _traceback_keyword_usages(dir, result, searched, configuration)
+    # Write searched result to json file.
+    _write_result_to_json(result, configuration)
 
 def transfer_method(package: str, cls: str, method: str) -> str:
     '''
@@ -178,6 +215,12 @@ def _mix_all_smalis(dir: str, smalis: List[str]):
                 print(dst, src, msg)
         progress = progress + 1
 
+def _write_result_to_json(result: SmaliSercherResult, configuration: SmaliSearcherConfiguration=None):
+    '''Write result to json file.'''
+    jsob_obj = result.to_json(configuration)
+    f_name = "smali_result_%d.json" % int(time.time())
+    write_json(f_name, jsob_obj)
+
 def _anything_need_to_search(configuration: SmaliSearcherConfiguration=None) -> bool:
     '''To judge is there anything necessary to search.'''
     return len(configuration.methods) > 0 and len(configuration.keywords) > 0
@@ -219,6 +262,7 @@ def _search_keyword_under_given_file(path: str, content: str, result: SmaliSerch
                 # Add method to result.
                 if line.find(keywrod) > 0:
                     if method_region and method.method_name != '':
+                        # TODO search usages in current file if the method is private
                         logging.debug("Found keyword usage: %s" % str(method))
                         result.keywords[keywrod].append(method)
                     else:
@@ -243,6 +287,7 @@ def _search_method_usage_under_given_file(path: str, content: str, result: Smali
                 # Add method to result.
                 if line.find(keywrod) > 0:
                     if method_region and method.method_name != '':
+                        # TODO search usages in current file if the method is private
                         logging.debug("Found method usage: %s" % str(method))
                         result.methods[keywrod].append(method)
                     else:
@@ -316,6 +361,7 @@ def _traceback_methods_usages(path: str, methods: List[SmaliMethod], result: Sma
                             result.methods[visit.pattern] = []
                             result.methods[visit.pattern].append(method)
                         # Add to traceback methods to search continusly if it's not private.
+                        # TODO search usages in current file if the method is private
                         if not method.private:
                             method.prepare_for_traceback(configuration)
                             methods.append(method)
@@ -327,11 +373,12 @@ if __name__ == "__main__":
     global_config.config_logging('../log/app.log')
     # decompile("/Users/wangshouheng/Desktop/apkanalyse/app_.apk")
     configuration = _read_configuration()
+    # print(configuration.traceback)
     # print(configuration)
     # configuration.methods = []
     # search_smali("workspace_1637821369/" + SMAILI_MIX_DIRECTORU, configuration)
     # search_under_smali("workspace_1637821369/smali_classes3", configuration)
-    # search_by_depth_visit('workspace_1637821369/smali_mix/com/netease/cloudmusic', configuration)
+    search_by_depth_visit('workspace_1637821369/smali_mix/com/netease/cloudmusic', configuration)
     # method = SmaliMethod()
     # method.method_name = "private static getChannel(I)Ljava/lang/String;"
     # method.path = "workspace_1637821369/smali_mix/com/netease/cloudmusic/statistic/encrypt/StatisticConfigFactory.smali"
