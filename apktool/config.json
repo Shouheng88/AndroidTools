@@ -1,6 +1,6 @@
 {
     "package": "com/netease/cloudmusic",
-    "keywords": ["sysdebug"],
-    "methods": ["Ljava/lang/StringBuilder;-><init>()V"],
-    "traceback": "False"
+    "keywords": ["Lcom/netease/cloudmusic/utils/PlayHelper;->isPlaying()Z"],
+    "traceback": false,
+    "result_store_path": "."
 }

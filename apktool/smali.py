@@ -25,9 +25,8 @@ class SmaliSearcherConfiguration:
     '''The smali searcher configuration.'''
     def __init__(self) -> None:
         self.package = ''
+        # The methods to search for example 'Ljava/lang/StringBuilder;-><init>()V', or keyword to search.
         self.keywords = []
-        # The methods to search, like 'Ljava/lang/StringBuilder;-><init>()V'
-        self.methods = []
         self.traceback = True
         self.result_store_path = "."
     
@@ -79,8 +78,6 @@ class SmaliSercherResult:
         '''Prepare the result object.'''
         for keyword in configuration.keywords:
             self.keywords[keyword] = []
-        for method in configuration.methods:
-            self.methods[method] = []
 
     def to_json(self, configuration: SmaliSearcherConfiguration):
         '''Transfer object to json.'''
@@ -94,14 +91,14 @@ class SmaliSercherResult:
                 item.calculate_pattern(configuration)
                 if k not in json_obj["keywords"]:
                     json_obj["keywords"][k] = []
-                json_obj["keywords"][k].append({k: item.pattern})
+                json_obj["keywords"][k].append(item.pattern)
         # Prepare methods json map.
         for k, items in self.methods.items():
             for item in items:
                 item.calculate_pattern(configuration)
                 if k not in json_obj["methods"]:
                     json_obj["methods"][k] = []
-                json_obj["methods"][k].append({k: item.pattern})
+                json_obj["methods"][k].append(item.pattern)
         # Return json object.
         return json_obj
 
@@ -170,7 +167,6 @@ def _read_configuration() -> SmaliSearcherConfiguration:
     configuration = SmaliSearcherConfiguration()
     configuration.package = json_object["package"]
     configuration.keywords = json_object["keywords"]
-    configuration.methods = json_object["methods"]
     configuration.traceback = json_object["traceback"]
     return configuration
 
@@ -223,7 +219,7 @@ def _write_result_to_json(result: SmaliSercherResult, configuration: SmaliSearch
 
 def _anything_need_to_search(configuration: SmaliSearcherConfiguration=None) -> bool:
     '''To judge is there anything necessary to search.'''
-    return len(configuration.methods) > 0 and len(configuration.keywords) > 0
+    return len(configuration.keywords) > 0
 
 def _should_ignore_given_file(path: str, configuration: SmaliSearcherConfiguration=None) -> bool:
     '''
@@ -241,18 +237,17 @@ def _search_under_given_file(path: str, result: SmaliSercherResult, configuratio
     '''Search under given file.'''
     content = read_text(path)
     _search_keyword_under_given_file(path, content, result, configuration)
-    _search_method_usage_under_given_file(path, content, result, configuration)
 
 def _search_keyword_under_given_file(path: str, content: str, result: SmaliSercherResult, configuration: SmaliSearcherConfiguration=None):
     '''Search keyword under given file based on text search.'''
     lines = content.split("\n")
-    for keywrod in configuration.keywords:
-        if content.find(keywrod) > 0:
+    for keyword in configuration.keywords:
+        if content.find(keyword) > 0:
             method_region = False
-            method = SmaliMethod()
             for line in lines:
                 # Found method region.
                 if line.startswith(".method"):
+                    method = SmaliMethod()
                     method_region = True
                     method.path = path
                     method.method_name = line.removeprefix(".method").strip()
@@ -260,38 +255,40 @@ def _search_keyword_under_given_file(path: str, content: str, result: SmaliSerch
                 elif line.startswith(".end method"):
                     method_region = False
                 # Add method to result.
-                if line.find(keywrod) > 0:
+                if line.find(keyword) > 0:
                     if method_region and method.method_name != '':
-                        # TODO search usages in current file if the method is private
                         logging.debug("Found keyword usage: %s" % str(method))
-                        result.keywords[keywrod].append(method)
+                        result.keywords[keyword].append(method)
+                        if method.private:
+                            _search_private_method_usage_under_current_file(path, content, method, result, configuration)
                     else:
                         logging.error("Found one isolate keyword in [%s][%s]" % (path, line))
 
-def _search_method_usage_under_given_file(path: str, content: str, result: SmaliSercherResult, configuration: SmaliSearcherConfiguration=None):
-    '''Search method usage under given file.'''
+def _search_private_method_usage_under_current_file(path: str, content: str, to_search: SmaliMethod, result: SmaliSercherResult, configuration: SmaliSearcherConfiguration=None):
+    '''Search private method usage in current file.'''
+    to_search.calculate_pattern(configuration)
+    logging.debug("Search private method under current file for: %s" % (str(to_search.pattern)))
     lines = content.split("\n")
-    for keywrod in configuration.methods:
-        if content.find(keywrod) > 0:
-            method_region = False
+    method_region = False
+    for line in lines:
+        # Find method region.
+        if line.startswith(".method"):
             method = SmaliMethod()
-            for line in lines:
-                # Find method region.
-                if line.startswith(".method"):
-                    method_region = True
-                    method.path = path
-                    method.method_name = line.removeprefix(".method").strip()
-                    method.private = line.startswith(".method private")
-                elif line.startswith(".end method"):
-                    method_region = False
-                # Add method to result.
-                if line.find(keywrod) > 0:
-                    if method_region and method.method_name != '':
-                        # TODO search usages in current file if the method is private
-                        logging.debug("Found method usage: %s" % str(method))
-                        result.methods[keywrod].append(method)
-                    else:
-                        logging.error("Found one isolate method usage in [%s][%s]" % (path, line))
+            method_region = True
+            method.path = path
+            method.method_name = line.removeprefix(".method").strip()
+            method.private = line.startswith(".method private")
+        elif line.startswith(".end method"):
+            method_region = False
+        # Add method to result.
+        if line.find(to_search.pattern) > 0:
+            if method_region and method.method_name != '':
+                logging.debug("Found method usage: %s" % str(method))
+                if result.methods.get(to_search.pattern) == None:
+                    result.methods[to_search.pattern] = []
+                result.methods[to_search.pattern].append(method)
+            else:
+                logging.error("Found one isolate method usage in [%s][%s]" % (path, line))
 
 def _traceback_keyword_usages(dir: str, result: SmaliSercherResult, total: int, configuration: SmaliSearcherConfiguration=None):
     '''Traceback keyword usages.'''
@@ -343,28 +340,31 @@ def _traceback_methods_usages(path: str, methods: List[SmaliMethod], result: Sma
         # Find usage for method.
         if content.find(visit.pattern) > 0:
             method_region = False
-            method = SmaliMethod()
+            method_line = False
             for line in lines:
                 # Find method region.
                 if line.startswith(".method"):
+                    method = SmaliMethod()
                     method_region = True
+                    method_line = True
                     method.path = path
                     method.method_name = line.removeprefix(".method").strip()
                     method.private = line.startswith(".method private")
                 elif line.startswith(".end method"):
                     method_region = False
-                # Add method to result.
-                if line.find(visit.pattern) > 0:
+                # Add method to result. Should ignore method signature line.
+                if line.find(visit.pattern) > 0 and not (method_line and path == method.path):
                     if method_region and method.method_name != '':
                         logging.debug("Found traceback method usage: %s" % str(method))
                         if result.methods.get(visit.pattern) == None:
                             result.methods[visit.pattern] = []
                             result.methods[visit.pattern].append(method)
                         # Add to traceback methods to search continusly if it's not private.
-                        # TODO search usages in current file if the method is private
                         if not method.private:
                             method.prepare_for_traceback(configuration)
                             methods.append(method)
+                        else:
+                            _search_private_method_usage_under_current_file(path, content, method, result, configuration)
                     else:
                         logging.error("Found one isolate method usage in [%s][%s]" % (path, line))
 
