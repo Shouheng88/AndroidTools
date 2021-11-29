@@ -109,6 +109,13 @@ class SmaliSercherResult:
         # Return json object.
         return json_obj
 
+    def to_methods(self):
+        '''Get all methods for json output.'''
+        json_obj = []
+        for pattern in self.methods.keys():
+            json_obj.append(pattern)
+        return json_obj
+
 def decompile(apk: str = None):
     '''Decompile the APK.'''
     out = "./workspace_%d" % int(time.time())
@@ -221,9 +228,17 @@ def _mix_all_smalis(dir: str, smalis: List[str]):
 
 def _write_result_to_json(result: SmaliSercherResult, configuration: SmaliSearcherConfiguration=None):
     '''Write result to json file.'''
+    version = int(time.time())
+    # Write methods mapping file.
     jsob_obj = result.to_json(configuration)
-    f_name = "smali_result_%d.json" % int(time.time())
+    f_name = "v_%d_smali_mappings.json" % version
     write_json(f_name, jsob_obj)
+    # Write methods json file.
+    jsob_obj = result.to_methods()
+    f_name = "v_%d_smali_methods.json" % version
+    write_json(f_name, jsob_obj)
+    # Write method stack json file.
+    
 
 def _anything_need_to_search(configuration: SmaliSearcherConfiguration=None) -> bool:
     '''To judge is there anything necessary to search.'''
@@ -291,6 +306,8 @@ def _search_private_method_usage_under_current_file(path: str, content: str, to_
         # Add method to result.
         if line.find(to_search.pattern) > 0:
             if method_region and method.method_name != '':
+                # Clear method region flag.
+                method_region = False
                 logging.debug("Found method usage: %s" % str(method))
                 if result.methods.get(to_search.pattern) == None:
                     result.methods[to_search.pattern] = []
@@ -344,6 +361,7 @@ def _traceback_methods_usages(path: str, methods: List[SmaliMethod], result: Sma
     lines = content.split("\n")
     visit_methods = []
     visit_methods.extend(methods)
+    private_visited_pattern = []
     for visit in visit_methods:
         # Increase traceback count and remove if it was visited a circle.
         visit.traceback_count = visit.traceback_count+1
@@ -352,7 +370,6 @@ def _traceback_methods_usages(path: str, methods: List[SmaliMethod], result: Sma
             logging.debug("Remove traceback method %s" % str(visit))
             # Skip
             continue
-        # Anyway, add one map to methods if the pattern is visited. Used to avoid multiple times visit.
         if visit.pattern not in result.methods:
             result.methods[visit.pattern] = []
         # Find usage for method.
@@ -371,7 +388,10 @@ def _traceback_methods_usages(path: str, methods: List[SmaliMethod], result: Sma
                 # Add method to result. Should ignore method signature line.
                 if line.find(visit.pattern) > 0:
                     if method_region and method.method_name != '':
-                        logging.debug("Found traceback method usage: %s" % str(method))
+                        # Clear method region state: if the 'visit' was called twice or more in current method, 
+                        # only keep one method record.
+                        method_region = False
+                        logging.debug("Found traceback method usage of %s in %s" % (str(visit), str(method)))
                         result.methods[visit.pattern].append(method)
                         # Add to traceback methods to search continusly if it's not private.
                         if not method.private:
@@ -379,9 +399,14 @@ def _traceback_methods_usages(path: str, methods: List[SmaliMethod], result: Sma
                             # Add judgement to avoid visit the same method twice.
                             if method.pattern not in result.methods:
                                 methods.append(method)
+                                # Anyway, add one map to methods if the pattern is visited. Used to avoid multiple times visit.
+                                result.methods[method.pattern] = []
                         else:
-                            # TODO methods calling private method might need to be added to 'methods' to traceback.
-                            _search_private_method_usage_under_current_file(path, content, method, result, configuration)
+                            # Need to avoid same private method visited multiple times.
+                            if method.method_name not in private_visited_pattern:
+                                private_visited_pattern.append(method.method_name)
+                                # TODO methods calling private method might need to be added to 'methods' to traceback.
+                                _search_private_method_usage_under_current_file(path, content, method, result, configuration)
                     else:
                         logging.error("Found one isolate method usage in [%s][%s]" % (path, line))
 
