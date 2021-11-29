@@ -109,11 +109,16 @@ class SmaliSercherResult:
         # Return json object.
         return json_obj
 
-    def to_methods(self):
+    def to_methods(self, configuration: SmaliSearcherConfiguration):
         '''Get all methods for json output.'''
         json_obj = []
-        for pattern in self.methods.keys():
-            json_obj.append(pattern)
+        patterns = []
+        for items in self.methods.values():
+            for item in items:
+                item.calculate_pattern(configuration)
+                if item.pattern not in patterns:
+                    patterns.append(item.pattern)
+                    json_obj.append(item.pattern)
         return json_obj
 
 def decompile(apk: str = None):
@@ -234,11 +239,40 @@ def _write_result_to_json(result: SmaliSercherResult, configuration: SmaliSearch
     f_name = "v_%d_smali_mappings.json" % version
     write_json(f_name, jsob_obj)
     # Write methods json file.
-    jsob_obj = result.to_methods()
+    jsob_obj = result.to_methods(configuration)
     f_name = "v_%d_smali_methods.json" % version
     write_json(f_name, jsob_obj)
     # Write method stack json file.
-    
+    jsob_obj = _compose_method_stacktrace(result)
+    f_name = "v_%d_smali_stacks.json" % version
+    write_json(f_name, jsob_obj)
+
+def _compose_method_stacktrace(result: SmaliSercherResult):
+    '''Compose method stacktrace.'''
+    json_obj = {}
+    # Prepare keywords json map.
+    for k, items in result.keywords.items():
+        for item in items:
+            item.calculate_pattern(configuration)
+            if k not in json_obj:
+                json_obj[k] = []
+            json_obj[k].append(item.pattern)
+    patterns = []
+    # Prepare methods json map.
+    for k, items in result.methods.items():
+        for item in items:
+            item.calculate_pattern(configuration)
+            if item.pattern not in patterns:
+                patterns.append(item.pattern)
+                if item.pattern not in json_obj:
+                    json_obj[item.pattern] = []
+                json_obj[item.pattern].append(item.pattern)
+                if k not in json_obj:
+                    json_obj[item.pattern].append(k)
+                else:
+                    json_obj[item.pattern].extend(json_obj[k])
+    # Return json object.
+    return json_obj
 
 def _anything_need_to_search(configuration: SmaliSearcherConfiguration=None) -> bool:
     '''To judge is there anything necessary to search.'''
