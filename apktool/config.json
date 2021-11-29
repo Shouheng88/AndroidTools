@@ -1,6 +1,7 @@
 {
     "package": "com/netease/cloudmusic",
-    "keywords": ["Lcom/netease/cloudmusic/utils/PlayHelper;->isPlaying()Z"],
-    "traceback": false,
+    "keywords": ["sysdebug"],
+    "traceback": true,
+    "traceback_generation": 3,
     "result_store_path": "."
 }

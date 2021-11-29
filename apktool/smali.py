@@ -29,11 +29,18 @@ class SmaliSearcherConfiguration:
         self.keywords = []
         self.traceback = True
         self.result_store_path = "."
-    
+        self.traceback_generation = 5
+        self.start_time = int(time.time())
+
     def __str__(self) -> str:
         return "SmaliSearcherConfiguration [%s][%s][%s][%s][%s]" \
             % (self.package, self.keywords, self.methods, \
                 str(self.traceback), self.result_store_path)
+
+    def cost_time(self) -> str:
+        '''Return and calculate the cost time.'''
+        cost = int(time.time()) - self.start_time
+        return "%d:%d" % (cost/60, cost%60)
 
 class SmaliMethod: 
     '''Smali method wrapper class.'''
@@ -168,6 +175,7 @@ def _read_configuration() -> SmaliSearcherConfiguration:
     configuration.package = json_object["package"]
     configuration.keywords = json_object["keywords"]
     configuration.traceback = json_object["traceback"]
+    configuration.traceback_generation = json_object["traceback_generation"]
     return configuration
 
 def _filt_by_packages(dir: str, configuration: SmaliSearcherConfiguration=None) -> List[str]:
@@ -299,13 +307,18 @@ def _traceback_keyword_usages(dir: str, result: SmaliSercherResult, total: int, 
             if not method.private:
                 method.prepare_for_traceback(configuration)
                 visit_methods.append(method)
+    for methods in result.methods.values():
+        for method in methods:
+            if not method.private:
+                method.prepare_for_traceback(configuration)
+                visit_methods.append(method)
     # Continusly visit the tree.
     circle = 0
-    while len(visit_methods) > 0:
+    while len(visit_methods) > 0 and circle < configuration.traceback_generation:
         visits = [dir]
         searched = 0
         circle = circle+1
-        logging.debug("Traceback methods: %s" % _connect_visit_methods(visit_methods))
+        # Add the max traceback generation judgement to avoid traceback too much.
         while len(visits) > 0 and len(visit_methods) > 0:
             visit = visits.pop()
             if os.path.exists(visit):
@@ -315,7 +328,7 @@ def _traceback_keyword_usages(dir: str, result: SmaliSercherResult, total: int, 
                         visits.append(path)
                     elif not _should_ignore_given_file(path):
                         searched = searched + 1
-                        print(" >>> Traceback [%d][%d][%d][%d] under [%s] " % (circle, searched, len(visit_methods), total, path), end = '\r')
+                        print(" >>> Traceback [%s][%d][%d][%d][%d] under [%s] " % (configuration.cost_time(), circle, searched, len(visit_methods), total, path), end = '\r')
                         _traceback_methods_usages(path, visit_methods, result, total, configuration)
 
 def _connect_visit_methods(methods: List[SmaliMethod]) -> str:
@@ -336,34 +349,38 @@ def _traceback_methods_usages(path: str, methods: List[SmaliMethod], result: Sma
         visit.traceback_count = visit.traceback_count+1
         if visit.traceback_count > total:
             methods.remove(visit)
-            logging.debug("Remove trace method %s" % str(visit))
+            logging.debug("Remove traceback method %s" % str(visit))
+            # Skip
+            continue
+        # Anyway, add one map to methods if the pattern is visited. Used to avoid multiple times visit.
+        if visit.pattern not in result.methods:
+            result.methods[visit.pattern] = []
         # Find usage for method.
         if content.find(visit.pattern) > 0:
             method_region = False
-            method_line = False
             for line in lines:
                 # Find method region.
                 if line.startswith(".method"):
                     method = SmaliMethod()
                     method_region = True
-                    method_line = True
                     method.path = path
                     method.method_name = line.removeprefix(".method").strip()
                     method.private = line.startswith(".method private")
                 elif line.startswith(".end method"):
                     method_region = False
                 # Add method to result. Should ignore method signature line.
-                if line.find(visit.pattern) > 0 and not (method_line and path == method.path):
+                if line.find(visit.pattern) > 0:
                     if method_region and method.method_name != '':
                         logging.debug("Found traceback method usage: %s" % str(method))
-                        if result.methods.get(visit.pattern) == None:
-                            result.methods[visit.pattern] = []
-                            result.methods[visit.pattern].append(method)
+                        result.methods[visit.pattern].append(method)
                         # Add to traceback methods to search continusly if it's not private.
                         if not method.private:
                             method.prepare_for_traceback(configuration)
-                            methods.append(method)
+                            # Add judgement to avoid visit the same method twice.
+                            if method.pattern not in result.methods:
+                                methods.append(method)
                         else:
+                            # TODO methods calling private method might need to be added to 'methods' to traceback.
                             _search_private_method_usage_under_current_file(path, content, method, result, configuration)
                     else:
                         logging.error("Found one isolate method usage in [%s][%s]" % (path, line))
