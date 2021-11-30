@@ -11,15 +11,12 @@
 /////////////////////////////////////////........................
 '''
 
-import os, sys, time, shutil, logging
+import os, sys, time, logging
 from typing import List
 sys.path.insert(0, '../')
 import global_config
 from files.textfiles import read_text
-from files.jsonfiles import read_json, write_json
-
-SMALI_MIX_DIRECTORY = "smali_mix"
-SMALI_SEARCHER_CONFIGURATION_FILE = "config.json"
+from files.jsonfiles import write_json
 
 class SmaliSearcherConfiguration:
     '''The smali searcher configuration.'''
@@ -121,31 +118,18 @@ class SmaliSercherResult:
                     json_obj.append(item.pattern)
         return json_obj
 
-def decompile(apk: str = None):
-    '''Decompile the APK.'''
-    out = "./workspace_%d" % int(time.time())
-    os.system("sh ../bin/apktool/apktool.sh D %s -o %s" % (apk, out))
-    return out
-
 def search_smali(dir: str, configuration: SmaliSearcherConfiguration=None):
     '''
     Search in given directory.
     - dir: the directory for smali files, such as 'workspace_1637821369/smali_mix'
     - configuration: the smali searcher configuration
     '''
-    files = os.listdir(dir)
-    smalis = []
-    for f in files:
-        if f.startswith("smali") and f != SMALI_MIX_DIRECTORY:
-            # search_under_smali(os.path.join(dir, f), configuration)
-            smalis.append(os.path.join(dir, f))
-    logging.info("Mixing " + str(smalis))
-    _mix_all_smalis(dir, smalis)
     # Filt by package name.
-    filted = _filt_by_packages(dir, configuration)
-    logging.info("After filt by package: " + str(filted))
+    filted_dirs = _filt_by_packages(dir, configuration)
+    logging.info("After filt by package: " + str(filted_dirs))
     # Search in smali files by depth visit.
-    search_by_depth_visit(dir, configuration)
+    for filted_dir in filted_dirs:
+        search_by_depth_visit(filted_dir, configuration)
 
 def search_by_depth_visit(dir: str, configuration: SmaliSearcherConfiguration=None):
     '''Search keywords by depth visit.'''
@@ -180,16 +164,6 @@ def transfer_method(package: str, cls: str, method: str) -> str:
     f_package = package.replace('.', '/')
     return 'L%s/%s;->' % (f_package, cls)
 
-def _read_configuration() -> SmaliSearcherConfiguration:
-    '''Read smali searcher configuration.'''
-    json_object = read_json(SMALI_SEARCHER_CONFIGURATION_FILE)
-    configuration = SmaliSearcherConfiguration()
-    configuration.package = json_object["package"]
-    configuration.keywords = json_object["keywords"]
-    configuration.traceback = json_object["traceback"]
-    configuration.traceback_generation = json_object["traceback_generation"]
-    return configuration
-
 def _filt_by_packages(dir: str, configuration: SmaliSearcherConfiguration=None) -> List[str]:
     '''Filt directories by package name.'''
     dirs = []
@@ -198,7 +172,7 @@ def _filt_by_packages(dir: str, configuration: SmaliSearcherConfiguration=None) 
         dirs.append(dir)
         return dirs
     # Filt directories by package name.
-    package = configuration.package
+    package = configuration.package.replace(".", "/")
     visits = [dir]
     while len(visits) > 0:
         visit = visits.pop()
@@ -214,37 +188,20 @@ def _filt_by_packages(dir: str, configuration: SmaliSearcherConfiguration=None) 
                         visits.append(path)
     return dirs
 
-def _mix_all_smalis(dir: str, smalis: List[str]):
-    '''
-    Mix all smali directories to one to reduce the complexity of the alogrithm.
-    Also we can make a more interesting things based on mixed smalis.
-    '''
-    to = os.path.join(dir, SMALI_MIX_DIRECTORY)
-    progress = 1
-    for smali in smalis:
-        print(" >>> Mixing [%s] %d%%" % (smali, progress*100/len(smalis)), end = '\r')
-        logging.info(" >>> Mixing [%s] %d%%" % (smali, progress*100/len(smalis)))
-        try:
-            shutil.copytree(smali, to, dirs_exist_ok=True)
-        except shutil.Error as e:
-            for src, dst, msg in e.args[0]:
-                print(dst, src, msg)
-        progress = progress + 1
-
 def _write_result_to_json(result: SmaliSercherResult, configuration: SmaliSearcherConfiguration=None):
     '''Write result to json file.'''
     version = int(time.time())
     # Write methods mapping file.
     jsob_obj = result.to_json(configuration)
-    f_name = "v_%d_smali_mappings.json" % version
+    f_name = "results_%d/smali_mappings.json" % version
     write_json(f_name, jsob_obj)
     # Write methods json file.
     jsob_obj = result.to_methods(configuration)
-    f_name = "v_%d_smali_methods.json" % version
+    f_name = "results_%d/smali_methods.json" % version
     write_json(f_name, jsob_obj)
     # Write method stack json file.
     jsob_obj = _compose_method_stacktrace(result)
-    f_name = "v_%d_smali_stacks.json" % version
+    f_name = "results_%d/smali_stacks.json" % version
     write_json(f_name, jsob_obj)
 
 def _compose_method_stacktrace(result: SmaliSercherResult):
@@ -447,14 +404,13 @@ def _traceback_methods_usages(path: str, methods: List[SmaliMethod], result: Sma
 if __name__ == "__main__":
     '''Program entrance.'''
     global_config.config_logging('../log/app.log')
-    # decompile("/Users/wangshouheng/Desktop/apkanalyse/app_.apk")
-    configuration = _read_configuration()
+    configuration = SmaliSearcherConfiguration()
     # print(configuration.traceback)
     # print(configuration)
     # configuration.methods = []
-    # search_smali("workspace_1637821369/" + SMAILI_MIX_DIRECTORU, configuration)
+    search_smali("workspace_1637821369/smali_mix", configuration)
     # search_under_smali("workspace_1637821369/smali_classes3", configuration)
-    search_by_depth_visit('workspace_1637821369/smali_mix/com/netease/cloudmusic', configuration)
+    # search_by_depth_visit('workspace_1637821369/smali_mix/com/netease/cloudmusic', configuration)
     # method = SmaliMethod()
     # method.method_name = "private static getChannel(I)Ljava/lang/String;"
     # method.path = "workspace_1637821369/smali_mix/com/netease/cloudmusic/statistic/encrypt/StatisticConfigFactory.smali"
