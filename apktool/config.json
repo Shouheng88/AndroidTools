@@ -1,0 +1,7 @@
+{
+    "package": "com/netease/cloudmusic",
+    "keywords": ["sysdebug"],
+    "traceback": true,
+    "traceback_generation": 3,
+    "result_store_path": "."
+}
