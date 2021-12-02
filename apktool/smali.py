@@ -18,15 +18,17 @@ import global_config
 from files.textfiles import read_text
 from files.jsonfiles import write_json
 
+DEFAULT_MAX_TRACEBACK_GENERATION = 3
+DEFAULT_RESULT_OUTPUT_PATH = "."
+
 class SmaliSearcherConfiguration:
     '''The smali searcher configuration.'''
     def __init__(self) -> None:
         self.package = ''
         # The methods to search for example 'Ljava/lang/StringBuilder;-><init>()V', or keyword to search.
         self.keywords = []
-        self.traceback = True
-        self.result_store_path = "."
-        self.traceback_generation = 5
+        self.traceback = TracebackConfiguration()
+        self.output = DEFAULT_RESULT_OUTPUT_PATH
         self.start_time = int(time.time())
 
     def __str__(self) -> str:
@@ -38,6 +40,15 @@ class SmaliSearcherConfiguration:
         '''Return and calculate the cost time.'''
         cost = int(time.time()) - self.start_time
         return "%d:%d" % (cost/60, cost%60)
+
+class TracebackConfiguration:
+    '''The traceback configuration.'''
+    def __init__(self) -> None:
+        self.enable = True
+        self.generation = DEFAULT_MAX_TRACEBACK_GENERATION
+
+    def __str__(self) -> str:
+        return "TracebackConfiguration [%s][%s]" % (str(self.enable), str(self.generation))
 
 class SmaliMethod: 
     '''Smali method wrapper class.'''
@@ -173,6 +184,7 @@ def _filt_by_packages(dir: str, configuration: SmaliSearcherConfiguration=None) 
         return dirs
     # Filt directories by package name.
     package = configuration.package.replace(".", "/")
+    logging.debug("Start to file for package [%s] under [%s]." % (package, dir))
     visits = [dir]
     while len(visits) > 0:
         visit = visits.pop()

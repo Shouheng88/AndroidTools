@@ -1,7 +1,11 @@
 {
+    "apk": "/Users/wangshouheng/Desktop/apkanalyse/app_.apk",
+    "force": false,
     "package": "com/netease/cloudmusic",
     "keywords": ["sysdebug"],
-    "traceback": true,
-    "traceback_generation": 3,
-    "result_store_path": "."
+    "traceback": {
+        "enable": true,
+        "generation": 1
+    },
+    "output": "."
 }

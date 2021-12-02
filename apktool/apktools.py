@@ -9,7 +9,7 @@
 /////////////////////////////////////////........................
 '''
 
-import os, sys, shutil, logging
+import os, sys, shutil, logging, time
 import hashlib
 import traceback
 from typing import List
@@ -23,9 +23,12 @@ class DecompileConfiguration:
     def __init__(self) -> None:
         # Should delete and re-decompile if given decompiled files or mixed smali files exists.
         self.force = False
+        self.decompile_cost = 0
+        self.mix_smalis_cost = 0
 
 def decompile(apk: str, configuration: DecompileConfiguration) -> str:
     '''Decompile the APK.'''
+    configuration.decompile_cost = int(time.time())
     if not os.path.exists(apk):
         return ERROR_APK_FILE_NOT_EXISTS
     with open(apk, 'rb') as fp:
@@ -33,17 +36,20 @@ def decompile(apk: str, configuration: DecompileConfiguration) -> str:
     file_md5 = hashlib.md5(data).hexdigest()
     out = "./workspace_%s" % file_md5
     if os.path.exists(out) and not configuration.force:
-        return os.path.join(out, SMALI_MIX_DIRECTORY)
+        return out
     try:
         os.system("sh ../bin/apktool/apktool.sh D %s -o %s" % (apk, out))
     except BaseException as e:
         logging.error('Error while decopiling:\n %s' % traceback.format_exc())
+    configuration.decompile_cost = int(time.time())-configuration.decompile_cost
     return out
 
+# TODO problem when execute apktools
 def mix_all_smalis(dir: str, configuration: DecompileConfiguration) -> str:
     '''
     Mix all smali directories under given dir.
     '''
+    configuration.mix_smalis_cost = int(time.time())
     mix_to = os.path.join(dir, SMALI_MIX_DIRECTORY)
     if os.path.exists(mix_to) and not configuration.force:
         return mix_to
@@ -55,7 +61,9 @@ def mix_all_smalis(dir: str, configuration: DecompileConfiguration) -> str:
             smalis.append(os.path.join(dir, f))
     logging.info("Mixing " + str(smalis))
     # Mix all smali files internal.
-    return _mix_all_smalis(mix_to, smalis)
+    out = _mix_all_smalis(mix_to, smalis)
+    configuration.mix_smalis_cost = int(time.time())-configuration.mix_smalis_cost
+    return out
 
 def decompile_and_mix_all_smalis(apk: str, configuration: DecompileConfiguration) -> str:
     '''Decompile given apk, mix all smali files together and return the mixed path.'''
@@ -88,3 +96,5 @@ if __name__ == "__main__":
     configuration = DecompileConfiguration()
     dir = decompile_and_mix_all_smalis("/Users/wangshouheng/Desktop/apkanalyse/app_.apk", configuration)
     print(dir)
+    print("Decompile cost: %ds" % configuration.decompile_cost)
+    print("Mix smalis cost: %ds" % configuration.mix_smalis_cost)
