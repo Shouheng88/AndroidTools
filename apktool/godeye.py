@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 
 '''
-/////////////////////////////////////////       ......       /////////////////////////////////////////
-//                                            ...    ...                                            //
-//                                           ...  ..  ...                                           //
-//    EYES OF GOD PROJECT                    ...  ..  ...         @Author Shouheng Wang             //
-//                                           ...  ..  ...                                           //
-//                                            ...    ...                                            //
-/////////////////////////////////////////       ......       /////////////////////////////////////////
+/////////////////////////////////////////       ........       /////////////////////////////////////////
+//                                            ...      ...                                            //
+//                                           ...   ..   ...                                           //
+//             EYES OF GOD                   ...  ....  ...            @Author Shouheng Wang          //
+//                                           ...   ..   ...                                           //
+//                                            ...      ...                                            //
+/////////////////////////////////////////       ........      //////////////////////////////////////////
 '''
 
 import logging
@@ -35,10 +35,12 @@ class GodEyeConfiguration:
         self.keywords = []
         self.traceback = TracebackConfiguration()
         self.output = "."
+        self.workspace = "."
+        self.apk_md5 = ''
 
     def __str__(self) -> str:
-        return "GodEyeConfiguration [%s][%s][%s][%s][%s][%s]" % (str(self.apk), str(self.force), \
-            str(self.package), str(self.keywords), str(self.traceback), str(self.output))
+        return "GodEyeConfiguration [%s][%s][%s][%s][%s][%s][%s]" % (str(self.apk), str(self.force), \
+            str(self.package), str(self.keywords), str(self.traceback), str(self.output), str(self.workspace))
 
 command_info = "\
 Options: \n\
@@ -96,15 +98,19 @@ def _search_under_smali_path(dir: str, configuration: GodEyeConfiguration):
     searcher_configuration.keywords = configuration.keywords
     searcher_configuration.traceback = configuration.traceback
     searcher_configuration.output = configuration.output
+    searcher_configuration.apk_md5 = configuration.apk_md5
     search_smali(dir, searcher_configuration)
 
 def _decompile_and_return_search_dir(configuration: GodEyeConfiguration) -> str:
     '''Do decompile to APK and return the directory of smalis to search.'''
     decompile_configuration = DecompileConfiguration()
     decompile_configuration.force = configuration.force
+    decompile_configuration.workspace = configuration.workspace
     # If you want to merge all smali files to one and then search under it, use the line below.
     # return decompile_and_mix_all_smalis(command.apk_path, decompile_configuration)
-    return decompile(configuration.apk, decompile_configuration)
+    out = decompile(configuration.apk, decompile_configuration)
+    configuration.apk_md5 = decompile_configuration.apk_md5
+    return out
 
 def _show_invalid_command(info: str):
     '''Show invliad command info.'''
@@ -120,6 +126,7 @@ def _read_configuration(path: str) -> GodEyeConfiguration:
     configuration.package = json_object["package"]
     configuration.keywords = json_object["keywords"]
     configuration.output = json_object["output"]
+    configuration.workspace = json_object["workspace"]
     json_traceback = json_object["traceback"]
     if json_traceback is not None:
         traceback = TracebackConfiguration()

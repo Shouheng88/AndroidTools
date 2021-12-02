@@ -27,6 +27,7 @@ class SmaliSearcherConfiguration:
         self.package = ''
         # The methods to search for example 'Ljava/lang/StringBuilder;-><init>()V', or keyword to search.
         self.keywords = []
+        self.apk_md5 = ''
         self.traceback = TracebackConfiguration()
         self.output = DEFAULT_RESULT_OUTPUT_PATH
         self.start_time = int(time.time())
@@ -157,7 +158,8 @@ def search_by_depth_visit(dir: str, configuration: SmaliSearcherConfiguration=No
                     visits.append(path)
                 elif not _should_ignore_given_file(path):
                     searched = searched + 1
-                    print(" >>> Searching [%d] under [%s] " % (searched, path), end = '\r')
+                    print(" >>> Searching [%s][%d] under [%s] " % (configuration.cost_time(), \
+                        searched, path.removeprefix(dir)), end = '\r')
                     _search_under_given_file(path, result, configuration)
     # Traceback usages: find where these methods all called.
     if configuration.traceback:
@@ -202,21 +204,23 @@ def _filt_by_packages(dir: str, configuration: SmaliSearcherConfiguration=None) 
 
 def _write_result_to_json(result: SmaliSercherResult, configuration: SmaliSearcherConfiguration=None):
     '''Write result to json file.'''
-    version = int(time.time())
+    result_dir = "%s/results_%s_%d" % (configuration.output, configuration.apk_md5, int(time.time()))
+    if not os.path.exists(result_dir):
+        os.mkdir(result_dir)
     # Write methods mapping file.
     jsob_obj = result.to_json(configuration)
-    f_name = "results_%d/smali_mappings.json" % version
+    f_name = "%s/smali_mappings.json" % result_dir
     write_json(f_name, jsob_obj)
     # Write methods json file.
     jsob_obj = result.to_methods(configuration)
-    f_name = "results_%d/smali_methods.json" % version
+    f_name = "%s/smali_methods.json" % result_dir
     write_json(f_name, jsob_obj)
     # Write method stack json file.
-    jsob_obj = _compose_method_stacktrace(result)
-    f_name = "results_%d/smali_stacks.json" % version
+    jsob_obj = _compose_method_stacktrace(result, configuration)
+    f_name = "%s/smali_stacks.json" % result_dir
     write_json(f_name, jsob_obj)
 
-def _compose_method_stacktrace(result: SmaliSercherResult):
+def _compose_method_stacktrace(result: SmaliSercherResult, configuration: SmaliSearcherConfiguration=None):
     '''Compose method stacktrace.'''
     json_obj = {}
     # Prepare keywords json map.
@@ -290,7 +294,8 @@ def _search_keyword_under_given_file(path: str, content: str, result: SmaliSerch
                     else:
                         logging.error("Found one isolate keyword in [%s][%s]" % (path, line))
 
-def _search_private_method_usage_under_current_file(path: str, content: str, to_search: SmaliMethod, result: SmaliSercherResult, configuration: SmaliSearcherConfiguration=None):
+def _search_private_method_usage_under_current_file(path: str, content: str, to_search: SmaliMethod,\
+     result: SmaliSercherResult, configuration: SmaliSearcherConfiguration=None):
     '''Search private method usage in current file.'''
     to_search.calculate_pattern(configuration)
     logging.debug("Search private method under current file for: %s" % (str(to_search.pattern)))
@@ -334,7 +339,7 @@ def _traceback_keyword_usages(dir: str, result: SmaliSercherResult, total: int, 
                 visit_methods.append(method)
     # Continusly visit the tree.
     circle = 0
-    while len(visit_methods) > 0 and circle < configuration.traceback_generation:
+    while len(visit_methods) > 0 and circle < configuration.traceback.generation:
         visits = [dir]
         searched = 0
         circle = circle+1
@@ -348,7 +353,8 @@ def _traceback_keyword_usages(dir: str, result: SmaliSercherResult, total: int, 
                         visits.append(path)
                     elif not _should_ignore_given_file(path):
                         searched = searched + 1
-                        print(" >>> Traceback [%s][%d][%d][%d][%d] under [%s] " % (configuration.cost_time(), circle, searched, len(visit_methods), total, path), end = '\r')
+                        print(" >>> Traceback [%s][%d][%d][%d][%d] under [%s] " % (configuration.cost_time(),\
+                             circle, searched, len(visit_methods), total, path.removeprefix(dir)), end = '\r')
                         _traceback_methods_usages(path, visit_methods, result, total, configuration)
 
 def _connect_visit_methods(methods: List[SmaliMethod]) -> str:

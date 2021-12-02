@@ -2,10 +2,11 @@
     "apk": "/Users/wangshouheng/Desktop/apkanalyse/app_.apk",
     "force": false,
     "package": "com/netease/cloudmusic",
-    "keywords": ["sysdebug"],
+    "keywords": ["\"sysdebug\""],
     "traceback": {
         "enable": true,
         "generation": 1
     },
-    "output": "."
+    "output": ".",
+    "workspace": "../../godseye"
 }
