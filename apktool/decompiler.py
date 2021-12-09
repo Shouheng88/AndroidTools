@@ -60,6 +60,7 @@ def decompile(apk: str, configuration: DecompileConfiguration) -> str:
         return out
     # Decompile dex in APK.
     _decompile(apk, out)
+    return out
 
 def _decompile(apk: str, out: str):
     '''Decompile internal.'''

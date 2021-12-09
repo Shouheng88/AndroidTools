@@ -1,11 +1,11 @@
 {
-    "apk": "/Users/wangshouheng/Desktop/apkanalyse/app_.apk",
+    "apk": "/Users/wangshouheng/downloads/app-debug.apk",
     "force": false,
-    "package": "com/netease/cloudmusic",
-    "keywords": ["\"sysdebug\""],
+    "package": "me/shouheng",
+    "keywords": ["\"10086\"", "\"UTF-8\""],
     "traceback": {
         "enable": true,
-        "generation": 1
+        "generation": 2
     },
     "output": ".",
     "workspace": "../../godseye"

@@ -18,8 +18,8 @@ import global_config
 from files.textfiles import read_text
 from files.jsonfiles import write_json
 
-DEFAULT_MAX_TRACEBACK_GENERATION = 3
-DEFAULT_RESULT_OUTPUT_PATH = "."
+DEFAULT_MAX_TRACEBACK_GENERATION    = 3
+DEFAULT_RESULT_OUTPUT_PATH          = "."
 
 class SmaliSearcherConfiguration:
     '''The smali searcher configuration.'''
@@ -122,6 +122,14 @@ class SmaliSercherResult:
         '''Get all methods for json output.'''
         json_obj = []
         patterns = []
+        # Write methods in keywords.
+        for items in self.keywords.values():
+            for item in items:
+                item.calculate_pattern(configuration)
+                if item.pattern not in patterns:
+                    patterns.append(item.pattern)
+                    json_obj.append(item.pattern)
+        # Write methods in methods.
         for items in self.methods.values():
             for item in items:
                 item.calculate_pattern(configuration)
@@ -423,18 +431,4 @@ if __name__ == "__main__":
     '''Program entrance.'''
     global_config.config_logging('../log/app.log')
     configuration = SmaliSearcherConfiguration()
-    # print(configuration.traceback)
-    # print(configuration)
-    # configuration.methods = []
     search_smali("workspace_1637821369/smali_mix", configuration)
-    # search_under_smali("workspace_1637821369/smali_classes3", configuration)
-    # search_by_depth_visit('workspace_1637821369/smali_mix/com/netease/cloudmusic', configuration)
-    # method = SmaliMethod()
-    # method.method_name = "private static getChannel(I)Ljava/lang/String;"
-    # method.path = "workspace_1637821369/smali_mix/com/netease/cloudmusic/statistic/encrypt/StatisticConfigFactory.smali"
-    # method.prepare_for_traceback(configuration)
-    # print(str(method))
-    # list = [1, 2, 3, 4]
-    # for item in list:
-    #     list.append(5)
-    # print(list)

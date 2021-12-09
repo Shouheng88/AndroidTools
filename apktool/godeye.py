@@ -2,13 +2,35 @@
 # -*- coding: utf-8 -*-
 
 '''
-/////////////////////////////////////////       ........       /////////////////////////////////////////
-//                                            ...      ...                                            //
-//                                           ...   ..   ...                                           //
-//             EYES OF GOD                   ...  ....  ...            @Author Shouheng Wang          //
-//                                           ...   ..   ...                                           //
-//                                            ...      ...                                            //
-/////////////////////////////////////////       ........      //////////////////////////////////////////
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWMWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWNXK0OOkkkkkOO0KNWWMMMWWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWXOxoc;`...         ..`;cok0NWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMW0xl,.      .`,`,:::::;,..     .,cd0NMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMWMMWMXkl,.    ..,::::clclOKKX0kxc,,,`...   .,lONWWWMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMWWWNOc`    ,:;:lccldOx:;c:d000o,,:;;;,;;:c:,.   `lkNMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMWKd,.    ,dO0OOxc,,;ol;;lc:l::,.:l;``,:ldookd::,.  ,o0WWWMWMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMW0l`  .;`.o000kxl;;:oo:,,,,,.````.`,``,,;cc;ckO0KKO;   .ckNWWMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMWKl.  .lOl`o0000K0kl;;d0kc.............`,,:odddddk00X0,.;`  ;kNWWMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMKo.  .oKWx.,k0000KKOkxolc,................:xkxxOOkO0KNWo.dXd,  ,xNMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMWNx`  .lKWMK:.:k00KXKkoodd;...................;llcllccx0NWk.cNMNx;  ;kNMMMWMMMMMMMMMMMM
+MMMMMMMMMMMWWO;  .c0WMMWk..:x00KXX0Okl......................`;,`;coOKKNK,;XMMMNx` .:0WWWMMMMMMMMMMMM
+MMMMMMMMWWW0c. .:OWWMMMMd.`;cdkKOoclo,....................``;dxxxddOKOxd`;XMMMMMXo. .dNMMMMMMMMMMMMM
+MMMMMMMMWNx` .;kNMMMMMMMd.`;;:lxo:;,`...................`.``;dk0XNOd00kl.:XMMMMMMW0:. :0WMMMMMMMMMMM
+MMMMMMMW0:..:kNMWWMMMWWMx..;;;;:lodl;`......................ckxxxkd:oOk:.lWMMMMMMMWNx` .dNMMMMMMMMMM
+MMMMMMWk..:OWMMMMWMMMWWMK,.,;;;;;;;,`::....................;xdxKKkxdddc..xMMMMMMMMMMMXo..;OWWMMMMMMM
+MMMMMMWk;cONMMMMMMMMWWMMWo..;;;;:clclO0o,.................`;oxllk00KOo;.;KMMMMMMMMMMMMW0l`.lXMMMMMMM
+MMMMMMMWXkoloONMMMMMMWMMMX:.,;;;;coox0Oocl;`............`,,,,okxoxKOl;..xWMMMMMMWMMMMMMWKo;oXMMMMMMM
+MMMMMMMMMMMXxlcoONWWMMMMMMK:.`;;;;:looodO0Oxc;;,.....```,;;;;;:d00Kkc..lNMMMMMMMMWWMNOo::dKWMMMMMMMM
+MMMMMMMMMMMMMWKdc:oONMMMMMMXl..;;;;;;:dO0000lcd:.`,,;;,`,;;;;oxld0Ol`.lXMMMMMMMMMNOl,`:xNMMMMMMMMMMM
+MMMMMMMMMMMMMMMMNOo::oONMMMMNx;.`,;,,:lkKKK0c:l:,,;;;;;`.;;;;oO0Okc.`xNWWMMMMWKxc,.;dKWMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMWWMNOl;;lkXWWMXd;.`,;;:xKK0d:loc:::;;;;,.`;;;:xxc``lKWWWWWXko;``:xKWMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMWNOl;,:dOXWNkc,..;x0xc::::;;;;;;;;;,,;;,```;oKWWN0xl;``:oOXWMMMMMMWMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMN0d:,,:ok00xl::;..`,,,;;,;;;;,``..`;cdk0Odl:,`,cdOXWMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMWXOo:,,,;lolccc::;;;,,,,;;;;:::clc;,,,;cdkKNMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWNKkoc:,,,;,,,,;,,,,,,,;;;,;coxOKNWMMWWMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWXK0Oxxdddddddxk00XNWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+                                                                     EYES OF GOD -- by Shouheng Wang
 '''
 
 import logging
@@ -16,7 +38,7 @@ import os, sys, getopt
 sys.path.insert(0, '../')
 import global_config
 from files.jsonfiles import read_json
-from apktools import DecompileConfiguration, decompile
+from decompiler import DecompileConfiguration, decompile
 from smali import SmaliSearcherConfiguration, search_smali, TracebackConfiguration
 
 DEFAULT_GOD_EYE_CONFIGURATION_FILE = "config.json"

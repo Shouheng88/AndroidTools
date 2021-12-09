@@ -53,7 +53,9 @@ def write_android_resources(dist, fname):
         if '\'' in v:
             v = v.replace("\'", "\\\'")
         # Handle > and <
-        if ('>' in v or '<' in v) and '<![CDATA[' not in v and '<br' not in v and '<b' not in v and '<a' not in v and '<i' not in v and '<u' not in v and '<em' not in v and '<big' not in v and '<small' not in v and '<h' not in v:
+        if ('>' in v or '<' in v) and '<![CDATA[' not in v and '<br' not in v and '<b' not in v and \
+            '<a' not in v and '<i' not in v and '<u' not in v and '<em' not in v and \
+            '<big' not in v and '<small' not in v and '<h' not in v:
             v = v.replace('>', '&gt;')
             v = v.replace('<', '&lt;')
         # Handle …
