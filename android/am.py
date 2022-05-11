@@ -143,7 +143,7 @@ def capture_screen(to: str, serial: str = None) -> int:
 
 if __name__ == "__main__":
     global_config.config_logging('../log/app.log')
-    TEST_PACKAGE_NAME = "com.netease.cloudmusic"
+    TEST_PACKAGE_NAME = ""
     TEST_DEVICE_SERIAL = "emulator-5556"
     TEST_APK_PATH = "/Users/wangshouheng/downloads/Snapdrop-0.3.apk"
     TEST_LOCAL_FILE = "adb.py"
