@@ -410,10 +410,10 @@ if __name__ == "__main__":
     # configuration.methods = []
     search_smali("workspace_1637821369/smali_mix", configuration)
     # search_under_smali("workspace_1637821369/smali_classes3", configuration)
-    # search_by_depth_visit('workspace_1637821369/smali_mix/com/netease/cloudmusic', configuration)
+    # search_by_depth_visit('workspace_1637821369/smali_mix/com/
+    /cloudmusic', configuration)
     # method = SmaliMethod()
     # method.method_name = "private static getChannel(I)Ljava/lang/String;"
-    # method.path = "workspace_1637821369/smali_mix/com/netease/cloudmusic/statistic/encrypt/StatisticConfigFactory.smali"
     # method.prepare_for_traceback(configuration)
     # print(str(method))
     # list = [1, 2, 3, 4]
